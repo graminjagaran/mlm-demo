@@ -1,0 +1,3678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Generation Network — Calculation Engine Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #0f172a;
+  --ink-soft: #64748b;
+  --ink-muted: #94a3b8;
+  --paper: #f1f5f9;
+  --card: #ffffff;
+  --line: #e2e8f0;
+  --line-strong: #cbd5e1;
+  --navy: #0c1e36;
+  --navy-mid: #132f52;
+  --navy-soft: #1e4976;
+  --navy-light: #e8f0f8;
+  --amber: #b8862c;
+  --amber-bright: #d4a017;
+  --amber-bg: #fef9ef;
+  --amber-border: #f0d9a8;
+  --green: #059669;
+  --green-bg: #ecfdf5;
+  --green-border: #a7f3d0;
+  --red: #dc2626;
+  --red-bg: #fef2f2;
+  --red-border: #fecaca;
+  --blue: #2563eb;
+  --blue-bg: #eff6ff;
+  --shadow-sm: 0 1px 2px rgba(15,23,42,.04);
+  --shadow: 0 4px 16px rgba(15,23,42,.06), 0 1px 3px rgba(15,23,42,.04);
+  --shadow-lg: 0 12px 32px rgba(15,23,42,.1), 0 4px 8px rgba(15,23,42,.04);
+  --radius: 16px;
+  --radius-sm: 10px;
+  --radius-xs: 8px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'Manrope', system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+.mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+
+/* ── Header ── */
+header {
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 55%, #1a3a5c 100%);
+  color: #fff;
+  padding: 20px 18px 18px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+header::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 90% -10%, rgba(184,134,44,.28), transparent 55%),
+    radial-gradient(ellipse 50% 40% at 10% 110%, rgba(30,73,118,.4), transparent 50%);
+  pointer-events: none;
+}
+header::after {
+  content: "";
+  position: absolute;
+  right: -30px; top: -50px;
+  width: 200px; height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(184,134,44,.2), transparent 65%);
+  pointer-events: none;
+}
+#menuBtn {
+  position: relative; z-index: 2;
+  background: rgba(255,255,255,.1);
+  border: 1px solid rgba(255,255,255,.2);
+  color: #fff;
+  width: 42px; height: 42px;
+  border-radius: 12px;
+  font-size: 18px;
+  cursor: pointer;
+  flex: 0 0 auto;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .2s;
+}
+#menuBtn:hover { background: rgba(255,255,255,.18); }
+header .htext { position: relative; z-index: 2; flex: 1; }
+header h1 {
+  margin: 0 0 4px;
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -.02em;
+  line-height: 1.25;
+}
+header p {
+  margin: 0;
+  color: #a8bdd4;
+  font-size: 13px;
+  font-weight: 500;
+}
+.badge-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(184,134,44,.15);
+  border: 1px solid rgba(184,134,44,.4);
+  color: #f0d48a;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 11px;
+  border-radius: 20px;
+  position: relative; z-index: 2;
+}
+.badge.soft {
+  background: rgba(255,255,255,.08);
+  border-color: rgba(255,255,255,.18);
+  color: #c5d4e6;
+}
+
+/* ── Sidebar ── */
+#overlay {
+  position: fixed; inset: 0;
+  background: rgba(10,15,25,.5);
+  backdrop-filter: blur(2px);
+  opacity: 0; pointer-events: none;
+  transition: opacity .25s;
+  z-index: 20;
+}
+#overlay.open { opacity: 1; pointer-events: auto; }
+#sidebar {
+  position: fixed; top: 0; left: 0; bottom: 0;
+  width: 280px; max-width: 85vw;
+  background: #fff;
+  z-index: 21;
+  transform: translateX(-100%);
+  transition: transform .28s cubic-bezier(.4,0,.2,1);
+  box-shadow: var(--shadow-lg);
+  padding-top: env(safe-area-inset-top, 0px);
+  display: flex; flex-direction: column;
+}
+#sidebar.open { transform: translateX(0); }
+#sidebar .sbhead {
+  padding: 22px 18px 16px;
+  border-bottom: 1px solid var(--line);
+  display: flex; align-items: center; gap: 10px;
+}
+#sidebar .sbhead .logo {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--navy), var(--navy-soft));
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 16px; font-weight: 800;
+  flex: 0 0 auto;
+}
+#sidebar .sbhead b { font-size: 14.5px; display: block; }
+#sidebar .sbhead span { display: block; font-size: 11.5px; color: var(--ink-soft); margin-top: 1px; }
+#closeSb {
+  margin-left: auto;
+  background: var(--paper);
+  border: none;
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  font-size: 16px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+#sidebar nav {
+  display: flex; flex-direction: column;
+  padding: 12px 10px;
+  gap: 4px;
+  overflow-y: auto;
+  flex: 1;
+}
+#sidebar nav button {
+  text-align: left;
+  border: none;
+  background: transparent;
+  color: var(--ink-soft);
+  padding: 12px 14px;
+  border-radius: 11px;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex; align-items: center; gap: 11px;
+  transition: all .15s;
+}
+#sidebar nav button .nav-icon {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  background: var(--paper);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  flex: 0 0 auto;
+  transition: all .15s;
+}
+#sidebar nav button:hover { background: var(--paper); color: var(--ink); }
+#sidebar nav button.active {
+  background: var(--navy);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(12,30,54,.25);
+}
+#sidebar nav button.active .nav-icon {
+  background: rgba(255,255,255,.15);
+}
+#sidebar .sbfoot {
+  padding: 14px 18px;
+  border-top: 1px solid var(--line);
+  font-size: 11px;
+  color: var(--ink-muted);
+  line-height: 1.4;
+}
+
+/* ── Main ── */
+main {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 20px 16px 70px;
+}
+section.panel { display: none; }
+section.panel.active {
+  display: block;
+  animation: fadeUp .3s ease;
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Cards ── */
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 22px 20px;
+  margin-bottom: 18px;
+  box-shadow: var(--shadow-sm);
+}
+.card h2 {
+  margin: 0 0 4px;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -.015em;
+  color: var(--ink);
+  display: flex; align-items: center; gap: 8px;
+}
+.card h2 .h-icon {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  background: var(--navy-light);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  flex: 0 0 auto;
+}
+.card .sub {
+  color: var(--ink-soft);
+  font-size: 13px;
+  margin-bottom: 18px;
+  line-height: 1.5;
+}
+
+/* ── Form ── */
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 520px) { .grid2 { grid-template-columns: 1fr; } }
+label {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+}
+input[type=number], input[type=text], select {
+  width: 100%;
+  padding: 11px 13px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-xs);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  background: #fafbfc;
+  color: var(--ink);
+  transition: border-color .15s, box-shadow .15s;
+}
+input:focus, select:focus {
+  outline: none;
+  border-color: var(--navy-soft);
+  box-shadow: 0 0 0 3px rgba(30,73,118,.12);
+  background: #fff;
+}
+.field { margin-bottom: 12px; }
+.section-label {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--navy);
+  margin: 16px 0 10px;
+  padding-bottom: 6px;
+  border-bottom: 1.5px solid var(--line);
+  display: flex; align-items: center; gap: 6px;
+}
+
+/* ── Tables ── */
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th {
+  text-align: left;
+  font-size: 10.5px;
+  color: var(--ink-soft);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  padding: 9px 8px;
+  border-bottom: 2px solid var(--line-strong);
+  background: #f8fafc;
+}
+td {
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+}
+td.num, th.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
+tr.total td {
+  font-weight: 800;
+  border-top: 2px solid var(--ink);
+  border-bottom: none;
+  background: #f8fafc;
+  padding-top: 12px;
+}
+.tblwrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 0 -4px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+}
+tr.pool td { color: var(--amber); font-weight: 600; }
+tr.pool { background: var(--amber-bg); }
+
+/* ── Formula & Notes ── */
+.formula {
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%);
+  color: #d4e2f0;
+  border-radius: 12px;
+  padding: 16px 16px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  line-height: 1.75;
+  margin-top: 14px;
+  white-space: pre-wrap;
+  box-shadow: var(--shadow);
+}
+.formula .k { color: #f0d48a; font-weight: 600; }
+.note {
+  background: var(--amber-bg);
+  border: 1px solid var(--amber-border);
+  color: #6b4e10;
+  border-radius: 11px;
+  padding: 12px 14px;
+  font-size: 12.5px;
+  margin-top: 12px;
+  line-height: 1.5;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.note::before {
+  content: "💡";
+  flex: 0 0 auto;
+  font-size: 15px;
+  line-height: 1.3;
+}
+.note.info {
+  background: var(--blue-bg);
+  border-color: #bfdbfe;
+  color: #1e40af;
+}
+.note.info::before { content: "📘"; }
+
+/* ── Stats ── */
+.stat-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+.stat {
+  flex: 1;
+  min-width: 130px;
+  background: #f8fafc;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px 14px;
+  transition: transform .15s, box-shadow .15s;
+}
+.stat:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
+.stat b {
+  display: block;
+  font-size: 17px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 2px;
+}
+.stat span {
+  font-size: 11px;
+  color: var(--ink-soft);
+  font-weight: 500;
+  line-height: 1.3;
+}
+.stat.highlight {
+  background: linear-gradient(135deg, var(--navy), var(--navy-mid));
+  border-color: var(--navy);
+  color: #fff;
+}
+.stat.highlight b { color: #fff; }
+.stat.highlight span { color: #a8bdd4; }
+.stat.amber {
+  background: var(--amber-bg);
+  border-color: var(--amber-border);
+}
+.stat.amber b { color: var(--amber); }
+.stat.green {
+  background: var(--green-bg);
+  border-color: var(--green-border);
+}
+.stat.green b { color: var(--green); }
+
+/* ── Level rows ── */
+.levelrow {
+  display: grid;
+  grid-template-columns: 52px 1fr 56px 58px;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px dashed var(--line);
+}
+.levelrow:last-child { border-bottom: none; }
+.levelrow span { font-size: 12.5px; font-weight: 700; }
+.levelrow input {
+  padding: 7px 8px;
+  font-size: 13px;
+}
+.reserved-tag {
+  font-size: 10px;
+  font-weight: 700;
+  background: var(--amber-bg);
+  color: var(--amber);
+  border: 1px solid var(--amber-border);
+  padding: 2px 8px;
+  border-radius: 6px;
+  margin-left: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all .15s;
+}
+.reserved-tag:hover { filter: brightness(.95); }
+.reserved-tag.live {
+  background: #f0f4f8;
+  color: #64748b;
+  border-color: var(--line);
+}
+
+/* ── Buttons ── */
+button.run {
+  width: 100%;
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-soft) 100%);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 14px;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 14.5px;
+  cursor: pointer;
+  margin-top: 8px;
+  box-shadow: 0 4px 14px rgba(12,30,54,.25);
+  transition: transform .15s, box-shadow .15s;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+button.run:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(12,30,54,.3);
+}
+button.run:active {
+  transform: translateY(0);
+  background: var(--navy-mid);
+}
+
+/* ── Legend ── */
+.legend {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: #f8fafc;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+}
+.legend .dot {
+  display: inline-block;
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  margin-right: 5px;
+  vertical-align: middle;
+}
+
+/* ── Status badges ── */
+.ledger-in { color: var(--green); font-weight: 600; }
+.ledger-out { color: var(--red); font-weight: 600; }
+.status-paid {
+  background: var(--green-bg);
+  color: var(--green);
+  border: 1px solid var(--green-border);
+  padding: 3px 9px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.status-due {
+  background: var(--amber-bg);
+  color: var(--amber);
+  border: 1px solid var(--amber-border);
+  padding: 3px 9px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* ── Formula reference cards ── */
+.fref {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 18px 18px;
+  margin-bottom: 14px;
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow .2s;
+}
+.fref:hover { box-shadow: var(--shadow); }
+.fref .fnum {
+  display: inline-flex;
+  align-items: center; justify-content: center;
+  width: 26px; height: 26px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--navy), var(--navy-soft));
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  margin-right: 10px;
+  flex: 0 0 auto;
+}
+.fref h3 {
+  margin: 0;
+  font-size: 14.5px;
+  font-weight: 800;
+  display: flex; align-items: center;
+}
+.fref .used-in {
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin: 6px 0 12px 36px;
+}
+.fref .used-in b { color: var(--navy-soft); font-weight: 700; }
+.vardefs {
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 12.5px;
+}
+.vardefs li {
+  padding: 5px 0;
+  border-bottom: 1px dashed var(--line);
+  display: flex; gap: 6px; align-items: flex-start;
+}
+.vardefs li:last-child { border-bottom: none; }
+.vardefs code {
+  background: var(--navy-light);
+  color: var(--navy);
+  border-radius: 5px;
+  padding: 2px 7px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px;
+  font-weight: 600;
+  flex: 0 0 auto;
+}
+.spec-ref {
+  display: inline-block;
+  margin-top: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--amber);
+  background: var(--amber-bg);
+  border: 1px solid var(--amber-border);
+  padding: 3px 11px;
+  border-radius: 20px;
+}
+
+/* ── Tree (genealogy) ── */
+#treeScroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 8px 0 12px;
+  background: #f8fafc;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+}
+#treeCanvas {
+  position: relative;
+  margin: 0 auto;
+  padding: 10px 8px 8px;
+}
+.rootRow { display: flex; justify-content: center; margin-bottom: 0; }
+.genblock { position: relative; }
+.genhead {
+  display: flex; flex-wrap: wrap; align-items: center;
+  gap: 5px 8px;
+  font-size: 11px;
+  font-weight: 800;
+  margin: 14px 0 6px;
+  padding-left: 4px;
+  line-height: 1.35;
+}
+.genhead .dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+.connSvg { display: block; width: 100%; height: 26px; }
+.noderow { display: flex; position: relative; }
+.tcell {
+  flex: 0 0 auto;
+  display: flex; flex-direction: column; align-items: center;
+}
+.tnode .circ {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: #e8ecf1;
+  display: flex; align-items: center; justify-content: center;
+  border: 2.5px solid #fff;
+  box-shadow: 0 0 0 1.5px var(--line);
+  transition: transform .15s;
+}
+.tnode:hover .circ { transform: scale(1.06); }
+.tnode .circ svg { width: 20px; height: 20px; fill: #a0aab8; }
+.tnode.active .circ {
+  background: linear-gradient(145deg, #d6e4f5, #c5d8ee);
+  box-shadow: 0 0 0 2.5px var(--navy-soft);
+}
+.tnode.active .circ svg { fill: var(--navy); }
+.tnode.reserved .circ {
+  background: linear-gradient(145deg, #fef3d8, #f5e4b8);
+  box-shadow: 0 0 0 2.5px var(--amber);
+}
+.tnode.reserved .circ svg { fill: var(--amber); }
+.tnode.root .circ, .tnode.buyer .circ {
+  background: linear-gradient(145deg, var(--ink), #1e293b);
+  box-shadow: none;
+  width: 44px; height: 44px;
+}
+.tnode.root .circ svg, .tnode.buyer .circ svg { fill: #fff; }
+.tnode .tag {
+  font-size: 9px;
+  font-weight: 800;
+  margin-top: 4px;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+.tnode .cap {
+  font-size: 10px;
+  font-weight: 700;
+  margin-top: 1px;
+  white-space: nowrap;
+  color: var(--ink-soft);
+  line-height: 1.2;
+}
+.tnode.active .cap, .tnode.reserved .cap,
+.tnode.root .cap, .tnode.buyer .cap { color: var(--ink); }
+.tnode .amt {
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  white-space: nowrap;
+  line-height: 1.3;
+  margin-top: 1px;
+}
+.sponsorRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1.5px dashed var(--amber-border);
+}
+.sponsorRow .sptext {
+  font-size: 11px;
+  color: var(--ink-soft);
+  font-weight: 700;
+}
+
+/* ── Animated commission tree (bottom-up) ── */
+.anim-tree-wrap {
+  background: linear-gradient(180deg, #0c1e36 0%, #132f52 50%, #1a3a5c 100%);
+  border-radius: 16px;
+  padding: 20px 14px 24px;
+  margin-top: 16px;
+  position: relative;
+  overflow: hidden;
+}
+.anim-tree-wrap::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 40% at 50% 100%, rgba(184,134,44,.15), transparent 60%),
+    radial-gradient(ellipse 40% 30% at 80% 20%, rgba(59,130,246,.1), transparent 50%);
+  pointer-events: none;
+}
+.anim-tree-title {
+  text-align: center;
+  color: #a8bdd4;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  position: relative;
+  z-index: 1;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.anim-chain {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+  max-width: 340px;
+  margin: 0 auto;
+}
+.anim-node {
+  width: 100%;
+  opacity: 0;
+  transform: translateY(12px) scale(.96);
+  transition: opacity .35s ease, transform .35s ease, box-shadow .3s;
+}
+.anim-node.visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+.anim-node.collecting {
+  box-shadow: 0 0 0 3px rgba(52,211,153,.5), 0 8px 28px rgba(0,0,0,.3);
+}
+.anim-node-inner {
+  display: grid;
+  grid-template-columns: 44px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.12);
+  backdrop-filter: blur(6px);
+}
+.anim-node.live .anim-node-inner {
+  background: rgba(59,130,246,.15);
+  border-color: rgba(96,165,250,.35);
+}
+.anim-node.pool .anim-node-inner {
+  background: rgba(184,134,44,.18);
+  border-color: rgba(234,179,8,.4);
+}
+.anim-node.sponsor .anim-node-inner {
+  background: rgba(16,185,129,.15);
+  border-color: rgba(52,211,153,.4);
+}
+.anim-node.buyer-node .anim-node-inner {
+  background: rgba(255,255,255,.12);
+  border-color: rgba(255,255,255,.25);
+}
+.anim-node.root-node .anim-node-inner {
+  background: rgba(255,255,255,.06);
+  border-color: rgba(255,255,255,.1);
+}
+.anim-node.you-node .anim-node-inner {
+  background: linear-gradient(135deg, rgba(184,134,44,.25), rgba(255,255,255,.1));
+  border-color: rgba(252,211,77,.5);
+  box-shadow: 0 0 20px rgba(184,134,44,.2);
+}
+.anim-node.you-node .anim-avatar {
+  background: rgba(184,134,44,.4);
+  font-size: 20px;
+}
+.anim-node.you-node .anim-name {
+  color: #fcd34d;
+}
+.anim-rate-detail {
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  color: #94a3b8;
+  margin-top: 3px;
+  opacity: 0;
+  transition: opacity .3s .1s;
+}
+.anim-rate-detail.show { opacity: 1; color: #e2e8f0; }
+.anim-extra {
+  font-size: 11px;
+  font-weight: 600;
+  color: #fcd34d;
+  margin-top: 3px;
+  opacity: 0;
+  transition: opacity .3s .15s;
+}
+.anim-extra.show { opacity: 1; }
+.anim-avatar {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  flex: 0 0 auto;
+  background: rgba(255,255,255,.1);
+}
+.anim-node.live .anim-avatar { background: rgba(59,130,246,.3); }
+.anim-node.pool .anim-avatar { background: rgba(184,134,44,.3); }
+.anim-node.sponsor .anim-avatar { background: rgba(16,185,129,.3); }
+.anim-node.buyer-node .anim-avatar { background: rgba(255,255,255,.15); font-size: 20px; }
+.anim-info { min-width: 0; }
+.anim-name {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.25;
+}
+.anim-role {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 1px;
+}
+.anim-amt-box {
+  text-align: right;
+  min-width: 72px;
+}
+.anim-amt {
+  font-size: 16px;
+  font-weight: 800;
+  font-family: 'JetBrains Mono', monospace;
+  color: #e2e8f0;
+  line-height: 1.2;
+  opacity: 0;
+  transform: scale(.8);
+  transition: opacity .3s, transform .3s, color .3s;
+}
+.anim-amt.show {
+  opacity: 1;
+  transform: scale(1);
+}
+.anim-amt.show.live-amt { color: #93c5fd; }
+.anim-amt.show.pool-amt { color: #fcd34d; }
+.anim-amt.show.sponsor-amt { color: #6ee7b7; }
+.anim-amt.show.buyer-amt { color: #fff; }
+.anim-rate {
+  font-size: 10.5px;
+  color: #64748b;
+  font-weight: 600;
+  margin-top: 1px;
+  opacity: 0;
+  transition: opacity .3s .1s;
+}
+.anim-rate.show { opacity: 1; }
+.anim-dest-tag {
+  display: inline-block;
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 5px;
+  margin-top: 3px;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  opacity: 0;
+  transition: opacity .3s .15s;
+}
+.anim-dest-tag.show { opacity: 1; }
+.anim-dest-tag.live-tag { background: rgba(59,130,246,.3); color: #93c5fd; }
+.anim-dest-tag.pool-tag { background: rgba(184,134,44,.3); color: #fcd34d; }
+.anim-dest-tag.sponsor-tag { background: rgba(16,185,129,.3); color: #6ee7b7; }
+
+/* Connector arrow between nodes (points UP = commission flow) */
+.anim-connector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 36px;
+  position: relative;
+  opacity: 0;
+  transition: opacity .25s;
+}
+.anim-connector.visible { opacity: 1; }
+.anim-connector .conn-line {
+  width: 2px;
+  flex: 1;
+  background: linear-gradient(to top, rgba(148,163,184,.5), rgba(148,163,184,.15));
+  position: relative;
+  overflow: hidden;
+}
+.anim-connector .conn-line::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0;
+  height: 40%;
+  background: linear-gradient(to top, transparent, #34d399, #6ee7b7);
+  border-radius: 2px;
+  top: 100%;
+  opacity: 0;
+}
+.anim-connector.flowing .conn-line::after {
+  animation: flowUp .7s ease-out forwards;
+}
+@keyframes flowUp {
+  0% { top: 100%; opacity: 0; }
+  20% { opacity: 1; }
+  100% { top: -20%; opacity: .9; }
+}
+.anim-connector .conn-arrow {
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1;
+  margin-top: -2px;
+  transition: color .3s, transform .3s;
+}
+.anim-connector.flowing .conn-arrow {
+  color: #34d399;
+  transform: scale(1.3);
+}
+
+/* Floating coin particle */
+.anim-particle {
+  position: absolute;
+  left: 50%;
+  width: 22px; height: 22px;
+  margin-left: -11px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #fcd34d, #f59e0b);
+  box-shadow: 0 0 12px rgba(252,211,77,.6), 0 2px 6px rgba(0,0,0,.3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  color: #78350f;
+  z-index: 5;
+  pointer-events: none;
+  opacity: 0;
+}
+.anim-particle.go {
+  animation: particleRise .75s ease-out forwards;
+}
+@keyframes particleRise {
+  0% { opacity: 0; transform: translateY(0) scale(.5); }
+  15% { opacity: 1; transform: translateY(-8px) scale(1.1); }
+  100% { opacity: 0; transform: translateY(-42px) scale(.7); }
+}
+
+.anim-controls {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 18px;
+  position: relative;
+  z-index: 1;
+  flex-wrap: wrap;
+}
+.anim-controls button {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex; align-items: center; gap: 6px;
+  transition: transform .15s, box-shadow .15s;
+}
+.anim-controls button:hover { transform: translateY(-1px); }
+.anim-controls .btn-play {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(16,185,129,.35);
+}
+.anim-controls .btn-reset {
+  background: rgba(255,255,255,.1);
+  color: #cbd5e1;
+  border: 1px solid rgba(255,255,255,.2);
+}
+.anim-totals {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 14px;
+  position: relative;
+  z-index: 1;
+  flex-wrap: wrap;
+}
+.anim-totals .at-card {
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 10px;
+  padding: 10px 16px;
+  text-align: center;
+  min-width: 100px;
+}
+.anim-totals .at-card .at-label {
+  font-size: 10px;
+  color: #94a3b8;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.anim-totals .at-card .at-val {
+  font-size: 16px;
+  font-weight: 800;
+  font-family: 'JetBrains Mono', monospace;
+  color: #fff;
+  margin-top: 2px;
+}
+.anim-totals .at-card.live .at-val { color: #93c5fd; }
+.anim-totals .at-card.pool .at-val { color: #fcd34d; }
+
+/* ── Insurance sales portfolio (urgency rows) ── */
+.ins-portfolio { margin-top: 18px; }
+.ins-kpi {
+  display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px;
+}
+.ins-kpi .stat { min-width: 110px; }
+.ins-row-ok td { background: #ecfdf5; }
+.ins-row-warn td { background: #fef9c3; }
+.ins-row-urgent td { background: #ffedd5; }
+.ins-row-critical td { background: #fee2e2; }
+.ins-row-overdue td { background: #fecaca; font-weight: 600; }
+.ins-days {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 52px; padding: 3px 8px; border-radius: 6px;
+  font-size: 11.5px; font-weight: 800; font-family: 'JetBrains Mono', monospace;
+}
+.ins-days.ok { background: #d1fae5; color: #065f46; }
+.ins-days.warn { background: #fef08a; color: #854d0e; }
+.ins-days.urgent { background: #fed7aa; color: #9a3412; }
+.ins-days.critical { background: #fecaca; color: #991b1b; }
+.ins-days.overdue { background: #dc2626; color: #fff; }
+.ins-status-pill {
+  font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: 5px;
+  text-transform: uppercase; letter-spacing: .03em;
+}
+.ins-status-pill.active { background: #d1fae5; color: #065f46; }
+.ins-status-pill.due-soon { background: #fef08a; color: #854d0e; }
+.ins-status-pill.due { background: #fecaca; color: #991b1b; }
+.ins-status-pill.overdue { background: #dc2626; color: #fff; }
+
+/* ── Intro strip ── */
+.intro-strip {
+  background: linear-gradient(135deg, var(--navy-light), #f0f5fa);
+  border: 1px solid #d0e0f0;
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin-bottom: 18px;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.intro-strip .intro-icon {
+  width: 40px; height: 40px;
+  border-radius: 11px;
+  background: var(--navy);
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  flex: 0 0 auto;
+}
+.intro-strip h3 {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--navy);
+}
+.intro-strip p {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  line-height: 1.45;
+}
+
+/* ── Chain commission visual flow ── */
+.chain-flow {
+  margin-top: 20px;
+  padding: 18px 16px 20px;
+  background: linear-gradient(180deg, #f8fafc 0%, #fff 40%);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+.chain-flow h3 {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--navy);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.chain-flow .flow-sub {
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin-bottom: 16px;
+}
+.flow-buyer {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 6px;
+}
+.flow-buyer .fb-card {
+  background: linear-gradient(145deg, var(--ink), #1e293b);
+  color: #fff;
+  border-radius: 14px;
+  padding: 14px 22px;
+  text-align: center;
+  box-shadow: 0 6px 20px rgba(15,23,42,.2);
+  min-width: 160px;
+}
+.flow-buyer .fb-card .fb-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  opacity: .7;
+  margin-bottom: 2px;
+}
+.flow-buyer .fb-card .fb-amt {
+  font-size: 22px;
+  font-weight: 800;
+  font-family: 'JetBrains Mono', monospace;
+}
+.flow-buyer .fb-card .fb-note {
+  font-size: 11px;
+  opacity: .75;
+  margin-top: 2px;
+}
+.flow-arrow-down {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin: 4px 0 8px;
+  color: var(--ink-muted);
+}
+.flow-arrow-down svg { width: 20px; height: 20px; }
+.flow-arrow-down span {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.flow-nodes {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.flow-node {
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1.5px solid var(--line);
+  background: #fff;
+  transition: transform .15s, box-shadow .15s;
+  position: relative;
+}
+.flow-node:hover {
+  transform: translateX(3px);
+  box-shadow: var(--shadow);
+}
+.flow-node.live {
+  border-left: 4px solid var(--navy-soft);
+  background: linear-gradient(90deg, #f0f6fc, #fff 40%);
+}
+.flow-node.pool {
+  border-left: 4px solid var(--amber);
+  background: linear-gradient(90deg, var(--amber-bg), #fff 40%);
+}
+.flow-node.sponsor {
+  border-left: 4px solid var(--green);
+  background: linear-gradient(90deg, var(--green-bg), #fff 40%);
+}
+.flow-node .fn-step {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  background: var(--paper);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--ink-soft);
+  flex: 0 0 auto;
+}
+.flow-node.live .fn-step { background: var(--navy-light); color: var(--navy); }
+.flow-node.pool .fn-step { background: #fef3c7; color: var(--amber); }
+.flow-node.sponsor .fn-step { background: #d1fae5; color: var(--green); }
+.flow-node .fn-body { min-width: 0; }
+.flow-node .fn-who {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--ink);
+  line-height: 1.25;
+}
+.flow-node .fn-rel {
+  font-size: 11.5px;
+  color: var(--ink-soft);
+  margin-top: 1px;
+}
+.flow-node .fn-amt-wrap {
+  text-align: right;
+  flex: 0 0 auto;
+}
+.flow-node .fn-amt {
+  font-size: 16px;
+  font-weight: 800;
+  font-family: 'JetBrains Mono', monospace;
+  line-height: 1.2;
+}
+.flow-node.live .fn-amt { color: var(--navy); }
+.flow-node.pool .fn-amt { color: var(--amber); }
+.flow-node.sponsor .fn-amt { color: var(--green); }
+.flow-node .fn-rate {
+  font-size: 11px;
+  color: var(--ink-muted);
+  font-weight: 600;
+}
+.flow-node .fn-dest {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 5px;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+}
+.flow-node.live .fn-dest {
+  background: var(--navy-light);
+  color: var(--navy);
+}
+.flow-node.pool .fn-dest {
+  background: #fef3c7;
+  color: #92400e;
+}
+.flow-node.sponsor .fn-dest {
+  background: #d1fae5;
+  color: #065f46;
+}
+.flow-bar-chart {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px dashed var(--line);
+}
+.flow-bar-chart h4 {
+  margin: 0 0 12px;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.bar-row {
+  display: grid;
+  grid-template-columns: 110px 1fr 72px;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.bar-row .bar-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bar-track {
+  height: 18px;
+  background: #e8ecf1;
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+}
+.bar-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width .5s cubic-bezier(.4,0,.2,1);
+  min-width: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 6px;
+}
+.bar-fill.live { background: linear-gradient(90deg, #3b82f6, var(--navy-soft)); }
+.bar-fill.pool { background: linear-gradient(90deg, #f59e0b, var(--amber)); }
+.bar-fill.sponsor { background: linear-gradient(90deg, #34d399, var(--green)); }
+.bar-row .bar-val {
+  font-size: 12px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  text-align: right;
+  color: var(--ink);
+}
+.flow-split {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+.flow-split .split-card {
+  flex: 1;
+  min-width: 140px;
+  border-radius: 12px;
+  padding: 14px 16px;
+  text-align: center;
+}
+.flow-split .split-card.live {
+  background: var(--navy-light);
+  border: 1px solid #bfdbfe;
+}
+.flow-split .split-card.pool {
+  background: var(--amber-bg);
+  border: 1px solid var(--amber-border);
+}
+.flow-split .split-card .sc-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  margin-bottom: 4px;
+}
+.flow-split .split-card .sc-amt {
+  font-size: 20px;
+  font-weight: 800;
+  font-family: 'JetBrains Mono', monospace;
+}
+.flow-split .split-card.live .sc-amt { color: var(--navy); }
+.flow-split .split-card.pool .sc-amt { color: var(--amber); }
+.flow-split .split-card .sc-pct {
+  font-size: 11.5px;
+  color: var(--ink-muted);
+  margin-top: 2px;
+  font-weight: 600;
+}
+
+/* ── Progress bars (Ranks) ── */
+.progress-block {
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  background: #f8fafc;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.progress-block.done {
+  background: var(--green-bg);
+  border-color: var(--green-border);
+}
+.progress-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+  gap: 8px;
+}
+.progress-head .crit-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.progress-head .crit-vals {
+  font-size: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+.progress-block.done .crit-vals { color: var(--green); }
+.progress-track {
+  height: 10px;
+  background: #e2e8f0;
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+}
+.progress-fill {
+  height: 100%;
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--navy-soft), var(--navy));
+  transition: width .45s cubic-bezier(.4,0,.2,1);
+  min-width: 0;
+}
+.progress-block.done .progress-fill {
+  background: linear-gradient(90deg, #10b981, var(--green));
+}
+.progress-pct {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink-muted);
+  margin-top: 5px;
+  text-align: right;
+}
+.progress-block.done .progress-pct { color: var(--green); }
+
+.rank-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: .02em;
+}
+.rank-badge.starter { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
+.rank-badge.bronze { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+.rank-badge.silver { background: #f1f5f9; color: #475569; border: 1px solid #94a3b8; }
+.rank-badge.gold { background: #fef9c3; color: #854d0e; border: 1px solid #facc15; }
+.rank-badge.platinum { background: #e0e7ff; color: #3730a3; border: 1px solid #a5b4fc; }
+.rank-badge.diamond { background: linear-gradient(135deg,#ecfeff,#e0f2fe); color: #0e7490; border: 1px solid #67e8f9; }
+
+.rank-card {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 12px;
+  background: #fff;
+  transition: box-shadow .2s, border-color .2s;
+}
+.rank-card.current {
+  border-color: var(--navy-soft);
+  box-shadow: 0 0 0 3px rgba(30,73,118,.12);
+  background: linear-gradient(135deg, #f8fafc, #eef4fa);
+}
+.rank-card.next {
+  border-color: var(--amber-border);
+  background: var(--amber-bg);
+}
+.rank-card.achieved {
+  border-color: var(--green-border);
+  background: var(--green-bg);
+}
+.rank-card .rank-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.rank-card .rank-title h4 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 800;
+}
+.rank-card .reward-text {
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  line-height: 1.4;
+  margin-top: 6px;
+}
+.rank-card .reward-text b { color: var(--ink); }
+.rank-status-pill {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+}
+.rank-status-pill.current { background: var(--navy); color: #fff; }
+.rank-status-pill.next { background: var(--amber); color: #fff; }
+.rank-status-pill.done { background: var(--green); color: #fff; }
+.rank-status-pill.locked { background: #e2e8f0; color: #64748b; }
+
+.award-banner {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  color: #fff;
+  border-radius: 14px;
+  padding: 18px 20px;
+  margin-bottom: 16px;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  box-shadow: 0 8px 24px rgba(5,150,105,.25);
+  animation: awardPop .4s ease;
+}
+@keyframes awardPop {
+  from { opacity: 0; transform: scale(.96) translateY(6px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.award-banner .award-icon {
+  width: 48px; height: 48px;
+  border-radius: 14px;
+  background: rgba(255,255,255,.2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px;
+  flex: 0 0 auto;
+}
+.award-banner h3 { margin: 0 0 4px; font-size: 16px; font-weight: 800; }
+.award-banner p { margin: 0; font-size: 13px; opacity: .92; line-height: 1.4; }
+
+.criteria-mini {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.criteria-mini span {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: #f1f5f9;
+  color: var(--ink-soft);
+  font-family: 'JetBrains Mono', monospace;
+}
+.rank-card.achieved .criteria-mini span { background: #d1fae5; color: #065f46; }
+.rank-card.next .criteria-mini span { background: #fef3c7; color: #92400e; }
+
+/* ── Footer ── */
+footer {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 16px 36px;
+  color: var(--ink-muted);
+  font-size: 11.5px;
+  text-align: center;
+  line-height: 1.5;
+}
+footer strong { color: var(--ink-soft); }
+
+/* ── Responsive tweaks ── */
+@media (max-width: 480px) {
+  header h1 { font-size: 16.5px; }
+  .card { padding: 18px 15px; }
+  .levelrow { grid-template-columns: 44px 1fr 50px 52px; gap: 6px; }
+}
+</style>
+</head>
+<body>
+<header>
+  <button id="menuBtn" onclick="toggleSidebar(true)" aria-label="Open menu">☰</button>
+  <div class="htext">
+    <h1>Generation Network — Calculation Engine</h1>
+    <p>Live interactive demo · Chain Commission · Ranks &amp; Rewards · Insurance EMI</p>
+    <div class="badge-row">
+      <span class="badge">✦ Sample data — every value is editable</span>
+      <span class="badge soft">Width 5 · Depth 6 · Spec v1.1</span>
+    </div>
+  </div>
+</header>
+
+<div id="overlay" onclick="toggleSidebar(false)"></div>
+<aside id="sidebar">
+  <div class="sbhead">
+    <div class="logo">GN</div>
+    <div>
+      <b>Calculation Engine</b>
+      <span>Choose a calculator</span>
+    </div>
+    <button id="closeSb" onclick="toggleSidebar(false)" aria-label="Close">✕</button>
+  </div>
+  <nav id="tabs">
+    <button data-tab="chain" class="active"><span class="nav-icon">🔗</span> Chain Commission</button>
+    <button data-tab="tree"><span class="nav-icon">🌳</span> Tree View (Genealogy)</button>
+    <button data-tab="self"><span class="nav-icon">🛒</span> Self-Sale / Direct Bonus</button>
+    <button data-tab="ranks"><span class="nav-icon">🏆</span> Ranks &amp; Rewards</button>
+    <button data-tab="emi"><span class="nav-icon">🛡️</span> Insurance EMI Wallet</button>
+    <button data-tab="ledger"><span class="nav-icon">📒</span> Wallet Ledger</button>
+    <button data-tab="formulas"><span class="nav-icon">📐</span> Formula Reference</button>
+  </nav>
+  <div class="sbfoot">
+    Matches Functional Spec v1.1<br>
+    Chapters 3–5, 7–8 · Confidential
+  </div>
+</aside>
+
+<main>
+
+<!-- ================= CHAIN COMMISSION ================= -->
+<section class="panel active" id="chain">
+  <div class="intro-strip">
+    <div class="intro-icon">🔗</div>
+    <div>
+      <h3>How level commission works</h3>
+      <p>When a member buys a package, commission flows up the placement tree. Mark any level as <b>Reserved</b> to see that share go to the Company Reserved Pool instead of a live wallet.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="h-icon">💰</span> Chain / Level Commission Calculator</h2>
+    <div class="sub">Edit package price, direct bonus %, level rates and reserved flags — then calculate. Results match Spec Chapter 5.3 &amp; Table 16.</div>
+
+    <div class="grid2">
+      <div class="field">
+        <label>Package Price</label>
+        <input type="number" id="c_price" value="300">
+      </div>
+      <div class="field">
+        <label>Direct Referral Bonus (%)</label>
+        <input type="number" id="c_direct" value="5" step="0.5">
+      </div>
+    </div>
+    <div class="field" style="max-width:200px;">
+      <label>Tree Width (hands per level)</label>
+      <input type="number" id="c_width" value="5" min="1" max="10" oninput="treeWidth=parseInt(this.value)||1; renderLevelRows();">
+    </div>
+
+    <div class="section-label">Level rates &amp; reserved positions <span style="font-weight:500;color:var(--ink-soft);text-transform:none;letter-spacing:0;">— tap tag to toggle</span></div>
+    <div id="levelRows"></div>
+
+    <button class="run" onclick="runChain()">▶ Calculate Commission</button>
+
+    <div class="tblwrap" style="margin-top:18px;">
+      <table id="chainTable">
+        <thead>
+          <tr>
+            <th>Recipient</th>
+            <th>Relationship</th>
+            <th class="num">Rate</th>
+            <th class="num">Amount</th>
+            <th>Credited To</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="stat-row" id="chainStats" style="margin-top:14px;"></div>
+    <div class="legend">
+      <span><span class="dot" style="background:var(--navy)"></span> Live member — credited to E-Wallet instantly</span>
+      <span><span class="dot" style="background:var(--amber)"></span> Reserved hand — held in Company Reserved Pool</span>
+    </div>
+
+    <!-- Graphical commission flow (same amounts, visual) -->
+    <div class="chain-flow" id="chainFlow">
+      <h3>📊 Graphical breakdown — same amounts</h3>
+      <div class="flow-sub">Package money flows up the tree. Each box = one recipient. Green = sponsor · Blue = live · Amber = reserved pool.</div>
+      <div id="chainFlowBody"></div>
+    </div>
+
+    <div class="formula" id="chainFormula"></div>
+    <div class="note">Spec reference: Chapter 5.3 (Worked example with reserved positions) and Table 16 — formula: <span class="mono">amount = base_price × level_rate</span>. When a level is Reserved the amount routes to the Company Reserved Pool (tagged with position ID).</div>
+  </div>
+</section>
+
+<!-- ================= TREE VIEW ================= -->
+<section class="panel" id="tree">
+  <div class="intro-strip">
+    <div class="intro-icon">🌳</div>
+    <div>
+      <h3>Tree View + Chain Commission (animated)</h3>
+      <p>Buyer থেকে উপরের দিকে commission flow। Arrow animation bottom → up, প্রতিটি member-এ amount collect হয়। Chain Commission-এর same amounts।</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="h-icon">🌳</span> Tree View — Monthly Chain Commission</h2>
+    <div class="sub">সব commission <b>monthly</b>। এই মাসের commission tree-তে দেখা যায় (pending)। <b>Next month</b> গিয়ে previous month-এর commission wallet-এ hit করে।</div>
+
+    <div class="section-label">Viewing as · Month</div>
+    <div class="grid2">
+      <div class="field">
+        <label>Member viewing the tree</label>
+        <select id="t_viewer" onchange="onMonthChange()">
+          <option value="INF00456|Rima Akter|Bronze" selected>INF00456 — Rima Akter (Bronze)</option>
+          <option value="INF00123|Karim Hossain|Silver">INF00123 — Karim Hossain (Silver)</option>
+          <option value="INF00789|Nusrat Jahan|Gold">INF00789 — Nusrat Jahan (Gold)</option>
+          <option value="INF00201|Imran Ali|Starter">INF00201 — Imran Ali (Starter)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Commission month</label>
+        <select id="t_month" onchange="onMonthChange()">
+          <option value="2026-06">June 2026</option>
+          <option value="2026-07">July 2026</option>
+          <option value="2026-08">August 2026</option>
+          <option value="2026-09" selected>September 2026 (current)</option>
+          <option value="2026-10">October 2026</option>
+        </select>
+      </div>
+    </div>
+    <div id="monthStatusBanner" style="margin-bottom:14px;"></div>
+
+    <div class="note info" style="margin-top:0;margin-bottom:12px;">
+      <b>Member panel view:</b> Tree <b>যিনি দেখছেন</b> তিনি থেকে শুরু — তার downline / generation। Company root এখানে নেই।
+      Reserved seat থাকলে সেই level-এর টাকা <b>company pool</b>-এ (member wallet-এ নয়)।
+      Current month = pending · Past month = already in E-Wallet.
+    </div>
+
+    <!-- Animated commission tree -->
+    <div class="anim-tree-wrap" id="animTreeWrap">
+      <div class="anim-tree-title" id="animTreeTitle">⚡ Commission flow · bottom → up</div>
+      <div class="anim-chain" id="animChain"></div>
+      <div class="anim-controls">
+        <button class="btn-play" onclick="playCommissionAnim()">▶ Play Animation</button>
+        <button class="btn-reset" onclick="resetCommissionAnim()">↺ Reset</button>
+      </div>
+      <div class="anim-totals" id="animTotals"></div>
+    </div>
+
+    <div class="section-label" style="margin-top:22px;">Full genealogy (width layout)</div>
+    <div class="grid2">
+      <div class="field">
+        <label>Second sale amount (Gen 3)</label>
+        <input type="number" id="t_price2" value="800">
+      </div>
+      <div class="field">
+        <label>Second earner's hand #</label>
+        <input type="number" id="t_hand2" value="4" min="1" max="10">
+      </div>
+    </div>
+    <button class="run" onclick="buildTree()">▶ Build Full Tree</button>
+    <div id="treeScroll" style="margin-top:18px;"><div id="treeCanvas"></div></div>
+    <div class="legend">
+      <span><span class="dot" style="background:var(--navy)"></span> Live member that earned on this month’s sales</span>
+      <span><span class="dot" style="background:var(--amber)"></span> Reserved Company Slot (RCS) → Pool</span>
+      <span><span class="dot" style="background:#c7cdd6"></span> Sibling hand — no earning on this month’s sales</span>
+    </div>
+    <div class="note">Dashed branch = <b>Sponsor</b> (separate from placement tree, Direct Referral Bonus). Animated chain above uses the same Chain Commission numbers.</div>
+
+    <div class="section-label" style="margin-top:22px;">Tree definitions (Spec §3.1 · Table 7)</div>
+    <div class="sub" style="margin-top:-4px;margin-bottom:12px;">Demo-এ যে tree / view লেখা আছে — সবগুলোর সঠিক সংজ্ঞা। “Reference tree” আলাদা নয় = <b>Sponsor / Referral tree</b>।</div>
+
+    <div class="fref" style="margin-bottom:10px;">
+      <h3><span class="fnum">A</span> Company Root (You · Level 0)</h3>
+      <ul class="vardefs">
+        <li>Tree-এর <b>সবচেয়ে উপরের</b> node — company-owned</li>
+        <li>Demo label: <b>You</b></li>
+        <li>Reserved pool ও unallocated commission company / You-এর দিকে</li>
+      </ul>
+    </div>
+
+    <div class="fref" style="margin-bottom:10px;">
+      <h3><span class="fnum">B</span> Placement Tree = Genealogy Tree</h3>
+      <ul class="vardefs">
+        <li><b>Physical structure</b> — প্রতি member-এর একজনই <code>placement parent</code></li>
+        <li>এক parent-এর নিচে max <code>Width</code> children (sample = 5)</li>
+        <li><b>Level / generation commission এই tree ধরে উপরে যায়</b></li>
+        <li>Demo: animated commission chain + “Full genealogy (width layout)”</li>
+      </ul>
+      <div class="note info" style="margin-top:8px;">
+        Example: Sponsor <b>A</b> member <b>M</b>-কে আনল, কিন্তু M বসল <b>B</b>-এর খালি slot-এ → Sponsor=A, Placement parent=B (TRE-04)। Level commission B-এর upline পথে; Direct Bonus A পায়।
+      </div>
+    </div>
+
+    <div class="fref" style="margin-bottom:10px;">
+      <h3><span class="fnum">C</span> Sponsor Tree = Referral Tree</h3>
+      <ul class="vardefs">
+        <li><b>কে কাকে introduce করল</b> (referral lineage)</li>
+        <li>Sponsor unlimited people আনতে পারে (width limit নেই)</li>
+        <li><b>Direct Referral Bonus শুধু এই tree-এ</b></li>
+        <li>Demo: সবুজ Sponsor S · dashed sponsor branch</li>
+        <li>কথ্য “Reference tree” = এই Sponsor / Referral tree (Spec নাম: Sponsor tree)</li>
+      </ul>
+    </div>
+
+    <div class="fref" style="margin-bottom:10px;">
+      <h3><span class="fnum">D</span> পাঁচটি Network View (product UI)</h3>
+      <ul class="vardefs">
+        <li><code>Genealogy Tree</code> — Placement-এর graphical view (zoom, “+” empty slot, reserved colour)</li>
+        <li><code>Sponsor Tree</code> — একই UI, sponsor relationship follow</li>
+        <li><code>Tree View</code> — Outline / hierarchy list by level + counters</li>
+        <li><code>Downline Members</code> — সব placement downline table (export Excel/CSV)</li>
+        <li><code>Referral Members</code> — শুধু direct sponsored list (placement ভিতরে/বাইরে)</li>
+      </ul>
+      <div class="note info" style="margin-top:8px;">
+        এই calculation demo-তে visual মূলত <b>Genealogy / Placement</b> + sponsor side-branch। Full product-এ উপরের ৫টা view (Spec Table 7)।
+      </div>
+    </div>
+
+    <div class="fref" style="margin-bottom:10px;">
+      <h3><span class="fnum">E</span> অন্য সংজ্ঞা</h3>
+      <ul class="vardefs">
+        <li><code>Level / Generation</code> — দূরত্ব: Level 1 = direct child, Level 2 = grandchild… depth পর্যন্ত</li>
+        <li><code>Tree Width</code> — এক placement parent-এর max hands (sample 5)</li>
+        <li><code>Depth ceiling</code> — কত level track ও pay (sample 6)</li>
+        <li><code>Upline</code> — উপরের chain · <code>Downline</code> — নিচের সব (placement)</li>
+        <li><code>Reserved / RCS</code> — company blank seat; commission → Your Reserved Pool</li>
+        <li><code>Spill-over</code> — auto placement: প্রথম খালি slot (breadth-first, left→right)</li>
+        <li><code>Non-network</code> — policy-only agent / policyholder — কোনো tree-এ নয়</li>
+      </ul>
+    </div>
+
+    <div class="tblwrap">
+      <table>
+        <thead>
+          <tr><th>Spec নাম</th><th>অন্য নাম</th><th>কী নির্ধারণ</th><th>কোন money</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><b>Placement tree</b></td><td>Genealogy tree</td><td>কোথায় বসল (parent + slot)</td><td>Level / generation commission</td></tr>
+          <tr><td><b>Sponsor tree</b></td><td>Referral / Reference tree</td><td>কে introduce করল</td><td>Direct referral bonus</td></tr>
+          <tr><td><b>Company Root</b></td><td>You · Level 0</td><td>Tree top</td><td>Pool / unallocated</td></tr>
+          <tr><td><b>Tree View</b> (UI)</td><td>Outline list</td><td>List by level</td><td>— display</td></tr>
+          <tr><td><b>Downline Members</b></td><td>Downline table</td><td>সব placement downline</td><td>— display/export</td></tr>
+          <tr><td><b>Referral Members</b></td><td>Direct referrals</td><td>Sponsored list only</td><td>— display</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note" style="margin-top:12px;">
+      Spec §3.1 · TRE-04: Sponsor ও Placement <b>আলাদা</b> store হয়। একই মানুষ Sponsor tree-তে Level 1, Placement-এ অন্য কারও Level 3 হতে পারে — দুই path-এর commission আলাদা।
+    </div>
+
+    <div class="section-label" style="margin-top:22px;">Live · Reserve · Upline · Hand — বাংলা অর্থ</div>
+    <div class="sub" style="margin-top:-4px;margin-bottom:10px;">নীল/সবুজ = Live · হলুদ = Reserve · Hand = placement স্লট নম্বর।</div>
+    <div class="tblwrap">
+      <table>
+        <thead>
+          <tr><th>ইংরেজি</th><th>বাংলা অর্থ</th><th>সহজ ব্যাখ্যা</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><b>Live</b></td><td>সচল member</td><td>আসল মানুষ আছে; commission তার <b>E-Wallet</b>-এ যায় (নীল/সবুজ)।</td></tr>
+          <tr><td><b>Reserve / RCS</b></td><td>সংরক্ষিত খালি সিট</td><td>কোম্পানির blank seat; commission <b>Your Reserved Pool</b>-এ (amber)।</td></tr>
+          <tr><td><b>Upline</b></td><td>উপরের লাইন</td><td>আমার উপরে যারা — তাদের দিকে commission উঠে যায়।</td></tr>
+          <tr><td><b>Downline</b></td><td>নিচের লাইন</td><td>আমার নিচে থাকা সব member (placement tree)।</td></tr>
+          <tr><td><b>Hand / Hand 1–5</b></td><td>হাত / স্লট নম্বর</td><td>এক parent-এর নিচে Width অনুযায়ী জায়গা। Width=5 → Hand 1…Hand 5 (বাম→ডান)।</td></tr>
+          <tr><td><b>Hand 3</b></td><td>৩ নম্বর স্লট</td><td>ওই level-এ তৃতীয় child position।</td></tr>
+          <tr><td><b>Hand 5</b></td><td>৫ নম্বর স্লট</td><td>Width 5 হলে শেষ (ডানদিকের) position।</td></tr>
+          <tr><td><b>Spill-over</b></td><td>উপচে পড়া বসানো</td><td>নিচে জায়গা না থাকলে পরের খালি স্লট-এ auto placement।</td></tr>
+          <tr><td><b>Pool</b></td><td>কোম্পানি পুল</td><td>Reserve seat-এর টাকা যেখানে জমা — You ধরে রাখে।</td></tr>
+          <tr><td><b>Pending</b></td><td>অপেক্ষমাণ</td><td>এই মাসের commission; পরের মাসে wallet-এ hit।</td></tr>
+          <tr><td><b>Settled</b></td><td>নিষ্পন্ন</td><td>আগের মাসের commission ইতিমধ্যে wallet-এ গেছে।</td></tr>
+          <tr><td><b>Active</b></td><td>সক্রিয়</td><td>Package চালু — commission পাওয়ার যোগ্য।</td></tr>
+          <tr><td><b>Placement parent</b></td><td>বসানোর অভিভাবক</td><td>Tree-তে যার সরাসরি নিচে বসেছি।</td></tr>
+          <tr><td><b>Sponsor</b></td><td>রেফারার</td><td>যে লিংক দিয়ে join করায়; Direct Bonus সে পায়।</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note info" style="margin-top:10px;">
+      <b>উদাহরণ:</b> “P1 (Hand 2)” = Live member P1, ২ নম্বর স্লট।
+      “R2 (Reserved, Hand 1)” = Reserve সিট, ১ নম্বর স্লট → টাকা pool-এ।
+      Upline = তার উপরের chain (You সহ)।
+    </div>
+
+    <div class="section-label" style="margin-top:22px;">Short forms → Full forms</div>
+    <div class="sub" style="margin-top:-4px;margin-bottom:10px;">Demo ও Spec-এ ব্যবহৃত সংক্ষিপ্ত রূপের পূর্ণ রূপ।</div>
+    <div class="tblwrap">
+      <table>
+        <thead>
+          <tr><th>Short</th><th>Full form</th><th>Short</th><th>Full form</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><b>MLM</b></td><td>Multi-Level Marketing</td><td><b>PV</b></td><td>Point Value</td></tr>
+          <tr><td><b>PPV</b></td><td>Personal Point Value</td><td><b>GPV</b></td><td>Group Point Value</td></tr>
+          <tr><td><b>EMI</b></td><td>Equated Monthly Instalment</td><td><b>RCS</b></td><td>Reserved Company Slot</td></tr>
+          <tr><td><b>KYC</b></td><td>Know Your Customer</td><td><b>ID</b></td><td>Identifier (e.g. INF00123)</td></tr>
+          <tr><td><b>L1–L6</b></td><td>Level / Generation 1–6</td><td><b>INF</b></td><td>Member ID prefix</td></tr>
+          <tr><td><b>POL-</b></td><td>Policy number prefix</td><td><b>UI</b></td><td>User Interface</td></tr>
+          <tr><td><b>TRE</b></td><td>Tree requirement ID</td><td><b>RSV</b></td><td>Reserved-position requirement</td></tr>
+          <tr><td><b>CMP</b></td><td>Compensation requirement</td><td><b>INS</b></td><td>Insurance requirement</td></tr>
+          <tr><td><b>WAL</b></td><td>Wallet requirement</td><td><b>PAY</b></td><td>Payout requirement</td></tr>
+          <tr><td><b>MEM</b></td><td>Member requirement</td><td><b>CSV</b></td><td>Comma-Separated Values</td></tr>
+          <tr><td><b>FP12</b></td><td>Family Protect · 12 months</td><td><b>HS06</b></td><td>Health Shield · 6 months</td></tr>
+          <tr><td><b>PP01</b></td><td>Product Protection plan</td><td><b>LS24</b></td><td>Life Secure · 24 months</td></tr>
+          <tr><td><b>2FA</b></td><td>Two-Factor Authentication</td><td><b>RBAC</b></td><td>Role-Based Access Control</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SELF SALE ================= -->
+<section class="panel" id="self">
+  <div class="intro-strip">
+    <div class="intro-icon">🛒</div>
+    <div>
+      <h3>Self-Sale / Self Business</h3>
+      <p>Member নিজে package কিনলে বা referral আনলে কত commission, PV, insurance — সব একসাথে। Self-purchase-এ Direct Bonus নেই, শুধু PV + level commission network-এ যায়।</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="h-icon">🛒</span> Self-Sale &amp; Self Business Calculator</h2>
+    <div class="sub">Order + insurance + network commission preview. Toggle Referral vs Self to compare.</div>
+
+    <div class="section-label">1 · Member / Customer</div>
+    <div class="grid2">
+      <div class="field"><label>Member Name</label><input type="text" id="s_name" value="Rima Akter"></div>
+      <div class="field"><label>Member ID</label><input type="text" id="s_id" value="INF00456"></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>Mobile</label><input type="text" id="s_mobile" value="+880 1712-345678"></div>
+      <div class="field"><label>Email</label><input type="text" id="s_email" value="rima.akter@example.com"></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>Sponsor ID</label><input type="text" id="s_sponsor" value="INF00123"></div>
+      <div class="field"><label>Placement Parent ID</label><input type="text" id="s_placement" value="INF00123"></div>
+    </div>
+    <div class="grid2">
+      <div class="field">
+        <label>Purchase type</label>
+        <select id="s_type" onchange="runSelf()">
+          <option value="referred">New member (referral) — sponsor gets Direct Bonus</option>
+          <option value="self" selected>Self-purchase / upgrade — no Direct Bonus</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Order date (demo)</label>
+        <input type="text" id="s_date" value="2026-09-27">
+      </div>
+    </div>
+
+    <div class="section-label">2 · Package / Product</div>
+    <div class="grid2">
+      <div class="field">
+        <label>Package</label>
+        <select id="s_pkg" onchange="fillPkg(); runSelf();">
+          <option value="100,50,Starter Kit">Pack 1 — ₹100 · PV 50 · Starter Kit</option>
+          <option value="300,100,Builder Pack">Pack 2 — ₹300 · PV 100 · Builder</option>
+          <option value="500,150,Growth Pack" selected>Pack 3 — ₹500 · PV 150 · Growth</option>
+          <option value="1000,300,Leader Pack">Pack 4 — ₹1,000 · PV 300 · Leader</option>
+          <option value="2500,750,Executive Pack">Pack 5 — ₹2,500 · PV 750 · Executive</option>
+          <option value="5000,1500,Ambassador Pack">Pack 6 — ₹5,000 · PV 1,500 · Ambassador</option>
+        </select>
+      </div>
+      <div class="field"><label>Direct Bonus Rate (%)</label><input type="number" id="s_rate" value="5" step="0.5" oninput="runSelf()"></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>Package Price</label><input type="number" id="s_price" value="500" oninput="runSelf()"></div>
+      <div class="field"><label>Package PV</label><input type="number" id="s_pv" value="150" oninput="runSelf()"></div>
+    </div>
+    <div class="field">
+      <label>Quantity</label>
+      <input type="number" id="s_qty" value="1" min="1" max="20" oninput="runSelf()" style="max-width:120px;">
+    </div>
+
+    <div class="section-label">3 · Insurance add-on (optional)</div>
+    <div class="grid2">
+      <div class="field">
+        <label>Insurance plan</label>
+        <select id="s_insplan" onchange="fillIns(); runSelf();">
+          <option value="none,0,0">None</option>
+          <option value="Family Protect FP12,12000,12" selected>Family Protect FP12 — ₹12,000 / 12 mo</option>
+          <option value="Health Shield HS06,6000,6">Health Shield HS06 — ₹6,000 / 6 mo</option>
+          <option value="Product Protection PP01,2400,12">Product Protection PP01 — ₹2,400 / 12 mo</option>
+          <option value="Life Secure LS24,24000,24">Life Secure LS24 — ₹24,000 / 24 mo</option>
+        </select>
+      </div>
+      <div class="field"><label>Commission on premium (%)</label><input type="number" id="s_insrate" value="5" step="0.5" oninput="runSelf()"></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>Premium (full term)</label><input type="number" id="s_prem" value="12000" oninput="runSelf()"></div>
+      <div class="field"><label>EMI term (months)</label><input type="number" id="s_emiterm" value="12" oninput="runSelf()"></div>
+    </div>
+
+    <div class="section-label">4 · Self-business volume (optional monthly sales)</div>
+    <div class="grid2">
+      <div class="field"><label>Own retail / service sales this month (₹)</label><input type="number" id="s_retail" value="8000" oninput="runSelf()"></div>
+      <div class="field"><label>Retail commission rate (%)</label><input type="number" id="s_retailrate" value="10" step="0.5" oninput="runSelf()"></div>
+    </div>
+
+    <button class="run" onclick="runSelf()">▶ Calculate Self Business</button>
+
+    <div id="selfTotal" style="margin-top:18px;"></div>
+    <div id="selfCards" style="margin-top:14px;"></div>
+    <div id="selfResult" style="margin-top:14px;"></div>
+    <div id="selfNetwork" style="margin-top:14px;"></div>
+
+    <!-- 15 insurance sales by this member -->
+    <div class="ins-portfolio" id="insPortfolio">
+      <div class="section-label">My insurance sales (15 policies) — next EMI / premium due</div>
+      <div class="sub" style="margin-top:-6px;margin-bottom:10px;">দিন কমলে row-এর রঙ আস্তে আস্তে লাল হয়। Overdue = লাল।</div>
+      <div class="ins-kpi" id="insKpi"></div>
+      <div class="tblwrap">
+        <table id="insSalesTable">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Policy / Customer</th>
+              <th>Plan</th>
+              <th class="num">Premium</th>
+              <th class="num">EMI</th>
+              <th>Next due</th>
+              <th>Days left</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="insSalesBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="formula" id="selfFormula"></div>
+    <div class="note">Spec: Table 14 · Section 6.2 · 7.12. Self-purchase = PV + level commission; Referral = + Direct Bonus. Insurance sales list shows EMI due urgency (Section 7.5 / 7.10).</div>
+  </div>
+</section>
+
+<!-- ================= RANKS & REWARDS ================= -->
+<section class="panel" id="ranks">
+  <div class="intro-strip">
+    <div class="intro-icon">🏆</div>
+    <div>
+      <h3>Achievement levels &amp; rewards</h3>
+      <p>Level complete করলে rank-wise award পাবে। প্রতিটি criterion-এর progress bar দেখায় কতটা বাকি। Spec Table 17 · Section 5.4 / 9.10।</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="h-icon">🏆</span> Ranks &amp; Rewards Progress</h2>
+    <div class="sub">Edit member stats below — progress bars and awards update live. Matches Spec sample ranks (Starter → Diamond).</div>
+
+    <div class="section-label">Member current stats (editable)</div>
+    <div class="grid2">
+      <div class="field"><label>Personal PV</label><input type="number" id="r_ppv" value="120" oninput="runRanks()"></div>
+      <div class="field"><label>Direct Referrals</label><input type="number" id="r_directs" value="4" oninput="runRanks()"></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>Team Size</label><input type="number" id="r_team" value="28" oninput="runRanks()"></div>
+      <div class="field"><label>Group PV</label><input type="number" id="r_gpv" value="3200" oninput="runRanks()"></div>
+    </div>
+
+    <button class="run" onclick="runRanks()">▶ Update Rank Progress</button>
+
+    <div id="rankAwardBanner" style="margin-top:18px;"></div>
+    <div id="rankCurrentSummary" style="margin-top:14px;"></div>
+    <div id="rankProgressBars" style="margin-top:16px;"></div>
+    <div id="rankLadder" style="margin-top:20px;"></div>
+
+    <div class="formula" id="rankFormula" style="margin-top:16px;"></div>
+    <div class="note">Spec: Table 17 (sample ranks) · Section 5.4 — criteria can be combined; progress bars for every unmet criterion (Section 9.10). Rank evaluation runs after each qualifying event. Rewards: cash, gift, trip, insurance credit, badge.</div>
+  </div>
+</section>
+
+<!-- ================= INSURANCE EMI ================= -->
+<section class="panel" id="emi">
+  <div class="intro-strip">
+    <div class="intro-icon">🛡️</div>
+    <div>
+      <h3>EMI auto-deduction from wallet</h3>
+      <p>Every month the EMI is auto-deducted. Remaining balance stays withdrawable. If short, status becomes <b>Due</b> and sweeps on next credit (INS-06 / INS-07).</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="h-icon">🛡️</span> Insurance EMI &amp; Wallet Reserve Simulation</h2>
+    <div class="sub">Per Spec Section 7.5 / 7.7 — six-month worked example with configurable credits and payouts.</div>
+
+    <div class="grid2">
+      <div class="field"><label>Annual Premium</label><input type="number" id="e_premium" value="12000"></div>
+      <div class="field"><label>Number of EMIs</label><input type="number" id="e_count" value="12"></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>Opening Wallet Balance</label><input type="number" id="e_open" value="2500"></div>
+      <div class="field"><label>EMI Reserve (days held before due)</label><input type="number" id="e_reserve" value="7"></div>
+    </div>
+    <div class="field">
+      <label>Commission credited each month (comma separated)</label>
+      <input type="text" id="e_credits" value="3400,1200,0,800,1200,2000">
+    </div>
+    <div class="field">
+      <label>Payout requested each month (comma separated)</label>
+      <input type="text" id="e_payouts" value="2000,0,1500,0,0,1000">
+    </div>
+
+    <button class="run" onclick="runEmi()">▶ Run Simulation</button>
+
+    <div class="tblwrap" style="margin-top:18px;">
+      <table id="emiTable">
+        <thead>
+          <tr>
+            <th>Month</th>
+            <th class="num">Opening</th>
+            <th class="num">Commission +</th>
+            <th class="num">EMI −</th>
+            <th class="num">Payout −</th>
+            <th class="num">Closing</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="stat-row" id="emiStats" style="margin-top:14px;"></div>
+
+    <div class="formula" id="emiFormula"></div>
+    <div class="note">Spec: Table 30 (six-month worked example). From <span class="mono">reserve_days</span> before due, the upcoming EMI is held and cannot be withdrawn (INS-06). Short balance → Due, swept on next credit (INS-07).</div>
+  </div>
+</section>
+
+<!-- ================= LEDGER ================= -->
+<section class="panel" id="ledger">
+  <div class="intro-strip">
+    <div class="intro-icon">📒</div>
+    <div>
+      <h3>Wallet Ledger</h3>
+      <p>Append-only member wallet (Spec §8.2). Settled / Pending / EMI / Own premium / Insurance cut — filter করে দেখুন। Balance = সব entry-এর sum।</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="h-icon">📒</span> Wallet Ledger — Member INF00123</h2>
+    <div class="sub">Sample 30-day activity: commission credits, monthly wallet hit, EMI, own insurance premium, payouts.</div>
+
+    <div class="section-label">Filters</div>
+    <div class="grid2">
+      <div class="field">
+        <label>Status</label>
+        <select id="led_status" onchange="filterLedger()">
+          <option value="all">All statuses</option>
+          <option value="settled">Settled (wallet credited)</option>
+          <option value="pending">Pending (this month, not yet hit)</option>
+          <option value="processing">Processing</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Category</label>
+        <select id="led_cat" onchange="filterLedger()">
+          <option value="all">All categories</option>
+          <option value="direct">Direct bonus</option>
+          <option value="level">Level commission</option>
+          <option value="insurance_comm">Insurance commission</option>
+          <option value="emi">Insurance EMI cut</option>
+          <option value="own_premium">Own premium / self policy</option>
+          <option value="retail">Self-business retail</option>
+          <option value="payout">Payout / withdrawal</option>
+          <option value="rank">Rank reward</option>
+          <option value="reversal">Reversal / adjustment</option>
+        </select>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="field">
+        <label>Direction</label>
+        <select id="led_dir" onchange="filterLedger()">
+          <option value="all">In + Out</option>
+          <option value="in">Credit only (+)</option>
+          <option value="out">Debit only (−)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Search description</label>
+        <input type="text" id="led_q" placeholder="e.g. EMI, Rima, POL-" oninput="filterLedger()">
+      </div>
+    </div>
+    <button class="run" onclick="runLedger()">▶ Rebuild sample ledger</button>
+
+    <div id="ledgerKpi" style="margin-top:16px;"></div>
+    <div class="tblwrap" style="margin-top:14px;">
+      <table id="ledgerTable">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Description</th>
+            <th>Category</th>
+            <th>Status</th>
+            <th class="num">Amount</th>
+            <th class="num">Balance</th>
+          </tr>
+        </thead>
+        <tbody id="ledgerBody"></tbody>
+      </table>
+    </div>
+    <div id="ledgerEmpty" style="display:none;text-align:center;padding:24px;color:var(--ink-soft);font-size:13px;">No rows match filters.</div>
+    <div class="note" style="margin-top:12px;">
+      <b>Settled</b> = previous month commission already in wallet ·
+      <b>Pending</b> = current month, next month-এ hit করবে ·
+      <b>EMI cut</b> = policyholder-এর premium auto-deduct ·
+      <b>Own premium</b> = member নিজের policy EMI ·
+      Append-only (WAL-01) — mistake = reversal row।
+    </div>
+  </div>
+</section>
+
+<!-- ================= FORMULA REFERENCE ================= -->
+<section class="panel" id="formulas">
+  <div class="intro-strip">
+    <div class="intro-icon">📐</div>
+    <div>
+      <h3>Every formula + worked example</h3>
+      <p>Client জিজ্ঞেস করলে “এই নাম্বার কোথা থেকে?” — এখানে formula + সংখ্যা দিয়ে example আছে। সব amount illustrative (Spec sample rates)।</p>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px;">
+    <h2><span class="h-icon">📐</span> Formula Reference with Examples</h2>
+    <div class="sub">Sample rates: Direct 5% · Levels 10 / 6 / 4 / 3 / 2 / 1% · Depth 6. Change any rate in Chain Commission tab — same formulas apply.</div>
+  </div>
+
+  <div class="fref">
+    <h3><span class="fnum">1</span> Direct Referral Bonus (Sponsor Bonus)</h3>
+    <div class="used-in">Used on: <b>Chain Commission</b> · <b>Self-Sale</b> (referral only)</div>
+    <div class="formula">direct_bonus = package_price × direct_rate</div>
+    <ul class="vardefs">
+      <li><code>package_price</code> new member যে package কিনেছে তার দাম</li>
+      <li><code>direct_rate</code> admin-set % (sample 5%)</li>
+      <li>Trigger: শুধু <b>নতুন referral</b> — self-purchase-এ চলে না</li>
+      <li>Destination: Sponsor E-Wallet · category “Direct bonus”</li>
+    </ul>
+    <div class="note info" style="margin-top:12px;">
+      <b>Example:</b> Rima buys Pack ₹500, direct rate 5%.<br>
+      <span class="mono">direct_bonus = 500 × 5% = ₹25</span><br>
+      Sponsor INF00123-এর wallet-এ ₹25। যদি Rima নিজেই upgrade করে (self) → bonus = ₹0।
+    </div>
+    <span class="spec-ref">Spec: Table 14, Table 15, MEM-01</span>
+  </div>
+
+  <div class="fref">
+    <h3><span class="fnum">2</span> Level (Generation) Commission</h3>
+    <div class="used-in">Used on: <b>Chain Commission</b> · <b>Tree View</b> (monthly)</div>
+    <div class="formula">level_commission(i) = base_amount × level_rate[i]
+// i = 1 … depth_ceiling (sample depth = 6)</div>
+    <ul class="vardefs">
+      <li><code>base_amount</code> package price (বা EMI, যদি renewal commission on)</li>
+      <li><code>level_rate</code> sample: L1=10%, L2=6%, L3=4%, L4=3%, L5=2%, L6=1%</li>
+      <li>Placement tree ধরে উপরে যায় — sponsor tree নয়</li>
+    </ul>
+    <div class="note info" style="margin-top:12px;">
+      <b>Example:</b> Sale ₹1,500 (September volume).<br>
+      <span class="mono">L1 = 1500 × 10% = ₹150<br>
+L2 = 1500 × 6%  = ₹90<br>
+L3 = 1500 × 4%  = ₹60<br>
+L4 = 1500 × 3%  = ₹45<br>
+L5 = 1500 × 2%  = ₹30<br>
+L6 = 1500 × 1%  = ₹15</span><br>
+      Level subtotal = ₹390 · + Direct 5% (₹75) → total commission ₹465 (31%)।
+    </div>
+    <span class="spec-ref">Spec: Chapter 5.2–5.3, Table 16, CMP-01</span>
+  </div>
+
+  <div class="fref">
+    <h3><span class="fnum">3</span> Reserved Position Routing</h3>
+    <div class="used-in">Used on: Chain / Tree — amber RCS nodes</div>
+    <div class="formula">if level[i].is_reserved:
+    Company_Reserved_Pool += level_commission(i)   // tag: position_id
+else:
+    upline.E_Wallet += level_commission(i)</div>
+    <ul class="vardefs">
+      <li>Reserved = company blank seat (Level 1–2 sample) — owner নেই, কিন্তু tree-তে আছে</li>
+      <li>Pool amount position ID-তে জমা থাকে</li>
+    </ul>
+    <div class="formula">Sale options when ID sold:
+A — new owner earns only from sale date (pool stays with You)
+B — full accrued pool → new owner wallet
+C — pool × release_percent → new owner</div>
+    <div class="note info" style="margin-top:12px;">
+      <b>Example:</b> Sale ₹1,500 · L3 &amp; L4 reserved.<br>
+      <span class="mono">L3 pool = 1500 × 4% = ₹60<br>
+L4 pool = 1500 × 3% = ₹45<br>
+Your pool total = ₹105</span><br>
+      Live members get ₹360 · You (company) hold ₹105 in Reserved Pool।
+    </div>
+    <span class="spec-ref">Spec: Chapter 4.5, Table 11, RSV-04, RSV-05</span>
+  </div>
+
+  <div class="fref">
+    <h3><span class="fnum">4</span> Self-Purchase / Upgrade</h3>
+    <div class="used-in">Used on: <b>Self-Sale</b> tab</div>
+    <div class="formula">direct_bonus = 0
+member.PV   += package_PV × qty
+level_commission(i) = package_total × level_rate[i]   // still paid to upline</div>
+    <ul class="vardefs">
+      <li>Self-buy = নিজের ID-তে package — নতুন sponsor relationship নেই</li>
+      <li>PV rank qualification-এ কাজে লাগে</li>
+    </ul>
+    <div class="note info" style="margin-top:12px;">
+      <b>Example A — Referral:</b> Pack ₹500, rate 5% → Sponsor gets ₹25 + levels on ₹500.<br>
+      <b>Example B — Self:</b> Same pack ₹500 → Sponsor gets ₹0 · Member gets +150 PV · Upline still gets level commissions on ₹500.
+    </div>
+    <span class="spec-ref">Spec: Section 6.2, Table 14</span>
+  </div>
+
+  <div class="fref">
+    <h3><span class="fnum">5</span> Insurance EMI Amount</h3>
+    <div class="used-in">Used on: <b>Insurance EMI</b> · Self-Sale insurance block</div>
+    <div class="formula">emi_amount = premium ÷ emi_count</div>
+    <ul class="vardefs">
+      <li><code>premium</code> full term premium (e.g. ₹12,000 / year)</li>
+      <li><code>emi_count</code> instalments (e.g. 12 months)</li>
+    </ul>
+    <div class="note info" style="margin-top:12px;">
+      <b>Example:</b> Family Protect FP12 · premium ₹12,000 · 12 months.<br>
+      <span class="mono">emi = 12000 ÷ 12 = ₹1,000 / month</span><br>
+      Life Secure ₹24,000 / 24 mo → EMI = ₹1,000 / month same amount, longer term.
+    </div>
+    <span class="spec-ref">Spec: Section 7.2, 7.3, INS-12</span>
+  </div>
+
+  <div class="fref">
+    <h3><span class="fnum">6</span> EMI Reserve &amp; Withdrawable Balance</h3>
+    <div class="used-in">EMI Wallet · Payout check</div>
+    <div class="formula">emi_reserve      = emi_amount     // locked from reserve_days before due (sample 7 days)
+withdrawable_bal = wallet_balance − emi_reserve − other_locks</div>
+    <ul class="vardefs">
+      <li>Due date-এর ৭ দিন আগে থেকে EMI amount withdraw করা যায় না</li>
+      <li>Short balance → status Due → next commission credit-এ sweep</li>
+    </ul>
+    <div class="note info" style="margin-top:12px;">
+      <b>Example:</b> Wallet ₹2,500 · EMI due ₹1,000 · reserve on.<br>
+      <span class="mono">withdrawable = 2500 − 1000 = ₹1,500</span><br>
+      Member max payout request = ₹1,500 (not ₹2,500)।
+    </div>
+    <span class="spec-ref">Spec: Table 28 INS-06, INS-07, INS-09</span>
+  </div>
+
+  <div class="fref">
+    <h3><span class="fnum">7</span> Monthly Wallet Movement</h3>
+    <div class="used-in">EMI simulation table</div>
+    <div class="formula">closing = opening + commission_in − emi_out − payout_out
+// order: credit first, then EMI, then payout</div>
+    <div class="note info" style="margin-top:12px;">
+      <b>Example — one month:</b><br>
+      <span class="mono">Opening     = ₹2,500<br>
++ Commission = ₹3,400<br>
+− EMI        = ₹1,000<br>
+− Payout     = ₹2,000<br>
+Closing      = 2500 + 3400 − 1000 − 2000 = ₹2,900</span>
+    </div>
+    <span class="spec-ref">Spec: Table 30 (six-month worked example)</span>
+  </div>
+
+  <div class="fref">
+    <h3><span class="fnum">8</span> Payout Net Amount</h3>
+    <div class="used-in">Payout workflow</div>
+    <div class="formula">payout_request ≤ withdrawable_balance
+net_payout = payout_request − fee − tax</div>
+    <div class="note info" style="margin-top:12px;">
+      <b>Example:</b> Request ₹2,000 · fee 1% · tax 0%.<br>
+      <span class="mono">fee = 2000 × 1% = ₹20<br>
+net = 2000 − 20 = ₹1,980</span><br>
+      Wallet থেকে ₹2,000 lock → bank-এ ₹1,980।
+    </div>
+    <span class="spec-ref">Spec: Table 43, Table 44, PAY-01, PAY-02</span>
+  </div>
+
+  <div class="fref">
+    <h3><span class="fnum">9</span> Wallet Ledger Running Balance</h3>
+    <div class="used-in"><b>Wallet Ledger</b> tab</div>
+    <div class="formula">balance[t] = balance[t-1] + amount[t]
+// append-only — mistake = new reversal row, never edit old row</div>
+    <div class="note info" style="margin-top:12px;">
+      <b>Example:</b><br>
+      <span class="mono">Start 0<br>
++ Direct bonus     +25  → bal 25<br>
++ Level commission +90  → bal 115<br>
+− EMI              −1000 → (if enough) else Due<br>
+− Payout           −50  → bal decreases</span><br>
+      Screen-এর balance সবসময় ledger-এর sum।
+    </div>
+    <span class="spec-ref">Spec: Section 8.2, WAL-01</span>
+  </div>
+
+  <div class="fref">
+    <h3><span class="fnum">10</span> Plan Payout Ratio</h3>
+    <div class="used-in">Chain Commission total row · admin plan check</div>
+    <div class="formula">total_rate = direct_rate + Σ level_rate[i]
+// sample: 5 + 10+6+4+3+2+1 = 31%</div>
+    <div class="note info" style="margin-top:12px;">
+      <b>Example:</b> Package ₹300 · total rate 31%.<br>
+      <span class="mono">total_commission = 300 × 31% = ₹93</span><br>
+      অর্থাৎ প্রতি ₹100 sale-এ ₹31 commission বেরোয় (live + pool + unallocated)। Admin plan change-এর আগে এই ratio দেখে।
+    </div>
+    <span class="spec-ref">Spec: Section 5.2, CMP-08</span>
+  </div>
+
+  <div class="fref">
+    <h3><span class="fnum">11</span> Monthly commission cycle (wallet timing)</h3>
+    <div class="used-in"><b>Tree View</b> month selector</div>
+    <div class="formula">this_month_commission  → status = PENDING (visible on tree)
+next_month_1st          → previous month amounts hit E-Wallet
+past_month              → status = PAID (already in wallet)</div>
+    <div class="note info" style="margin-top:12px;">
+      <b>Example:</b><br>
+      <span class="mono">September sales volume ₹1,500 → commission ₹465 = PENDING on tree<br>
+October 1 → ₹465 credited to wallets (live + pool rules)<br>
+August was ₹2,800 volume → ₹868 already PAID in September</span>
+    </div>
+    <span class="spec-ref">Spec: payment cycle configurable (instant / daily / monthly) — demo uses monthly</span>
+  </div>
+
+  <div class="fref">
+    <h3><span class="fnum">12</span> Rank qualification &amp; progress</h3>
+    <div class="used-in"><b>Ranks &amp; Rewards</b> tab</div>
+    <div class="formula">rank_ok = (PPV ≥ need) AND (directs ≥ need) AND (team ≥ need) AND (GPV ≥ need)
+progress% = min(100, current / required × 100)
+remaining = max(0, required − current)</div>
+    <div class="note info" style="margin-top:12px;">
+      <b>Example — next rank Silver</b> (need: PPV 150, Directs 5, Team 50, GPV 5,000).<br>
+      Member now: PPV 120, Directs 4, Team 28, GPV 3,200.<br>
+      <span class="mono">PPV     120/150 = 80%  · 30 baki<br>
+Directs 4/5   = 80%  · 1 baki<br>
+Team    28/50 = 56%  · 22 baki<br>
+GPV     3200/5000 = 64% · 1,800 baki</span><br>
+      Overall ≈ average of four % · Bronze already achieved if criteria met · reward unlocks on rank complete.
+    </div>
+    <span class="spec-ref">Spec: Table 17, Section 5.4, 9.10</span>
+  </div>
+
+  <div class="fref">
+    <h3><span class="fnum">13</span> Self-business retail income</h3>
+    <div class="used-in"><b>Self-Sale</b> — own retail volume</div>
+    <div class="formula">retail_income = retail_volume × retail_rate
+// this is member’s own income — NOT network commission</div>
+    <div class="note info" style="margin-top:12px;">
+      <b>Example:</b> Member sells products/services ₹8,000 this month · rate 10%.<br>
+      <span class="mono">retail_income = 8000 × 10% = ₹800</span><br>
+      Network commission আলাদা (direct + levels + insurance) · retail নিজের business margin।
+    </div>
+    <span class="spec-ref">Spec: commercial / self-business (demo extension of member earnings)</span>
+  </div>
+</section>
+
+</main>
+<footer>
+  <strong>Generation Network Marketing Platform</strong> — Calculation Engine Demo<br>
+  All figures compute locally in this browser · for illustration only · Spec v1.1 Confidential
+</footer>
+
+<script>
+// ---------- sidebar ----------
+function toggleSidebar(open){
+  document.getElementById('sidebar').classList.toggle('open', open);
+  document.getElementById('overlay').classList.toggle('open', open);
+}
+document.querySelectorAll('#tabs button').forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll('#tabs button').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    document.getElementById(b.dataset.tab).classList.add('active');
+    toggleSidebar(false);
+    if (b.dataset.tab === 'tree') { onMonthChange(); }
+  };
+});
+
+const fmt = n => '₹' + (Math.round(Math.abs(n) * 100) / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+const PERSON = '<svg viewBox="0 0 24 24"><path d="M12 12a5 5 0 100-10 5 5 0 000 10zm0 2c-4.4 0-9 2.2-9 6v2h18v-2c0-3.8-4.6-6-9-6z"/></svg>';
+const NODE_W = 54, NODE_GAP = 14;
+
+// ---------- CHAIN COMMISSION ----------
+let treeWidth = 5;
+let levels = [
+  { n: 1, name: 'Direct Line', rate: 10, reserved: false, hand: 2, who: 'P1' },
+  { n: 2, name: 'Builder', rate: 6, reserved: false, hand: 4, who: 'P2' },
+  { n: 3, name: 'Growth', rate: 4, reserved: true, hand: 1, who: 'R2' },
+  { n: 4, name: 'Leader', rate: 3, reserved: true, hand: 3, who: 'R1' },
+  { n: 5, name: 'Executive', rate: 2, reserved: false, hand: 5, who: '—' },
+  { n: 6, name: 'Ambassador', rate: 1, reserved: false, hand: 2, who: '—' },
+];
+
+// Monthly commission meta — MUST be before runChain/buildTree
+const MONTH_META = {
+  '2026-06': { label: 'June 2026',      volume: 450,  sales: 3,  status: 'paid',    buyer: 'Tanvir Ahmed' },
+  '2026-07': { label: 'July 2026',      volume: 1200, sales: 5,  status: 'paid',    buyer: 'Mitu Chowdhury' },
+  '2026-08': { label: 'August 2026',    volume: 2800, sales: 9,  status: 'paid',    buyer: 'Omar Faruk' },
+  '2026-09': { label: 'September 2026', volume: 1500, sales: 6,  status: 'pending', buyer: 'Sakib Al Hasan' },
+  '2026-10': { label: 'October 2026',   volume: 900,  sales: 4,  status: 'future',  buyer: 'Fahim Rahman' },
+};
+const CURRENT_MONTH_KEY = '2026-09';
+
+function renderLevelRows() {
+  const wrap = document.getElementById('levelRows');
+  wrap.innerHTML = levels.map((l, i) => `
+    <div class="levelrow">
+      <span>Lvl ${l.n}</span>
+      <span>${l.name}${l.reserved
+        ? '<span class="reserved-tag" onclick="toggleReserved(' + i + ')">RESERVED</span>'
+        : '<span class="reserved-tag live" onclick="toggleReserved(' + i + ')">Live</span>'}</span>
+      <input type="number" value="${l.rate}" step="0.5" oninput="levels[${i}].rate=parseFloat(this.value)||0" title="rate %">
+      <input type="number" value="${l.hand}" min="1" max="${treeWidth}" oninput="levels[${i}].hand=Math.min(${treeWidth},Math.max(1,parseInt(this.value)||1))" title="hand #">
+    </div>`).join('');
+}
+function toggleReserved(i) {
+  levels[i].reserved = !levels[i].reserved;
+  renderLevelRows();
+}
+renderLevelRows();
+
+function runChain() {
+  const price = parseFloat(document.getElementById('c_price').value) || 0;
+  const directRate = parseFloat(document.getElementById('c_direct').value) || 0;
+  const tbody = document.querySelector('#chainTable tbody');
+  let rows = [];
+  let liveTotal = 0, poolTotal = 0;
+
+  const directAmt = price * directRate / 100;
+  rows.push({ who: 'Sponsor S', rel: 'Direct referral', rate: directRate, amt: directAmt, dest: 'live' });
+  liveTotal += directAmt;
+
+  levels.forEach(l => {
+    const amt = price * l.rate / 100;
+    const label = l.reserved
+      ? `${l.who} (Reserved, Hand ${l.hand})`
+      : `${l.who !== '—' ? l.who : 'Upline'} (Hand ${l.hand})`;
+    rows.push({ who: label, rel: l.name, rate: l.rate, amt: amt, dest: l.reserved ? 'pool' : 'live' });
+    if (l.reserved) poolTotal += amt; else liveTotal += amt;
+  });
+
+  const totalRate = directRate + levels.reduce((s, l) => s + l.rate, 0);
+  const totalAmt = price * totalRate / 100;
+
+  tbody.innerHTML = rows.map(r => `<tr class="${r.dest === 'pool' ? 'pool' : ''}">
+    <td>${r.who}</td>
+    <td>${r.rel}</td>
+    <td class="num">${r.rate}%</td>
+    <td class="num">${fmt(r.amt)}</td>
+    <td>${r.dest === 'pool' ? 'Company Reserved Pool' : 'E-Wallet (instant)'}</td>
+  </tr>`).join('')
+    + `<tr class="total"><td colspan="3">Total commission generated (${totalRate}%)</td><td class="num">${fmt(totalAmt)}</td><td></td></tr>`;
+
+  document.getElementById('chainStats').innerHTML = `
+    <div class="stat green"><b>${fmt(liveTotal)}</b><span>Credited to live members’ wallets</span></div>
+    <div class="stat amber"><b>${fmt(poolTotal)}</b><span>Held in Company Reserved Pool</span></div>
+    <div class="stat highlight"><b>${fmt(totalAmt)}</b><span>Total commission (${totalRate}% of ${fmt(price)})</span></div>`;
+
+  // ── Graphical flow (same amounts) ──
+  const maxAmt = Math.max(...rows.map(r => r.amt), 1);
+  let flowHtml = `
+    <div class="flow-buyer">
+      <div class="fb-card">
+        <div class="fb-label">Buyer pays</div>
+        <div class="fb-amt">${fmt(price)}</div>
+        <div class="fb-note">Package purchase</div>
+      </div>
+    </div>
+    <div class="flow-arrow-down">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+      <span>Commission splits upward</span>
+    </div>
+    <div class="flow-nodes">`;
+
+  rows.forEach((r, i) => {
+    const cls = r.dest === 'pool' ? 'pool' : (i === 0 ? 'sponsor' : 'live');
+    const destLabel = r.dest === 'pool' ? '→ Reserved Pool' : '→ E-Wallet';
+    const stepNum = i === 0 ? 'S' : String(i);
+    flowHtml += `
+      <div class="flow-node ${cls}">
+        <div class="fn-step">${stepNum}</div>
+        <div class="fn-body">
+          <div class="fn-who">${r.who}</div>
+          <div class="fn-rel">${r.rel}</div>
+          <span class="fn-dest">${destLabel}</span>
+        </div>
+        <div class="fn-amt-wrap">
+          <div class="fn-amt">${fmt(r.amt)}</div>
+          <div class="fn-rate">${r.rate}%</div>
+        </div>
+      </div>`;
+  });
+  flowHtml += `</div>`;
+
+  // Horizontal bar chart
+  flowHtml += `
+    <div class="flow-bar-chart">
+      <h4>Amount comparison (bar size = share of total commission)</h4>`;
+  rows.forEach((r, i) => {
+    const w = Math.max(4, (r.amt / maxAmt) * 100);
+    const barCls = r.dest === 'pool' ? 'pool' : (i === 0 ? 'sponsor' : 'live');
+    const shortWho = r.who.length > 18 ? r.who.slice(0, 16) + '…' : r.who;
+    flowHtml += `
+      <div class="bar-row">
+        <div class="bar-label" title="${r.who}">${shortWho}</div>
+        <div class="bar-track"><div class="bar-fill ${barCls}" style="width:${w}%"></div></div>
+        <div class="bar-val">${fmt(r.amt)}</div>
+      </div>`;
+  });
+  flowHtml += `</div>`;
+
+  // Split summary cards
+  const livePct = totalAmt > 0 ? Math.round((liveTotal / totalAmt) * 100) : 0;
+  const poolPct = totalAmt > 0 ? Math.round((poolTotal / totalAmt) * 100) : 0;
+  flowHtml += `
+    <div class="flow-split">
+      <div class="split-card live">
+        <div class="sc-label">Live wallets</div>
+        <div class="sc-amt">${fmt(liveTotal)}</div>
+        <div class="sc-pct">${livePct}% of commission</div>
+      </div>
+      <div class="split-card pool">
+        <div class="sc-label">Reserved pool</div>
+        <div class="sc-amt">${fmt(poolTotal)}</div>
+        <div class="sc-pct">${poolPct}% of commission</div>
+      </div>
+    </div>`;
+
+  document.getElementById('chainFlowBody').innerHTML = flowHtml;
+
+  document.getElementById('chainFormula').innerHTML =
+`<span class="k">FORMULA</span>
+amount(level i)   = package_price × level_rate[i]
+direct_bonus      = package_price × direct_rate
+if level.reserved  → amount → Company_Reserved_Pool (tag: position_id)
+else                → amount → recipient.E_Wallet   (instant, category "Commission")
+
+<span class="k">This run:</span> package_price = ${fmt(price)}, total_rate = ${totalRate}%, total = ${fmt(totalAmt)}`;
+  // Chain tab result — do not overwrite tree month data if tree helpers exist
+  window._lastChainFromCalc = { rows, price, totalAmt, liveTotal, poolTotal };
+  if (!window._lastChain || !window._lastChain.monthKey) {
+    window._lastChain = window._lastChainFromCalc;
+  }
+  if (typeof buildTree === 'function') {
+    try { buildTree(); } catch (e) { console.warn('buildTree', e); }
+  }
+}
+runChain();
+
+// ---------- MONTHLY COMMISSION helpers ----------
+function getSelectedMonthKey() {
+  const el = document.getElementById('t_month');
+  return (el && el.value) ? el.value : CURRENT_MONTH_KEY;
+}
+
+function getViewer() {
+  const el = document.getElementById('t_viewer');
+  const raw = (el && el.value) ? el.value : 'INF00456|Rima Akter|Bronze';
+  const p = raw.split('|');
+  return { id: p[0] || 'INF00456', name: p[1] || 'Member', rank: p[2] || '' };
+}
+
+function buildChainForMonth(monthKey) {
+  const meta = MONTH_META[monthKey] || MONTH_META[CURRENT_MONTH_KEY];
+  const price = Number(meta.volume) || 0;
+  const directRate = parseFloat(document.getElementById('c_direct') && document.getElementById('c_direct').value) || 5;
+  const lvl = (typeof levels !== 'undefined' && levels.length) ? levels : [
+    { n: 1, name: 'Direct Line', rate: 10, reserved: false, hand: 2, who: 'P1' },
+    { n: 2, name: 'Builder', rate: 6, reserved: false, hand: 4, who: 'P2' },
+    { n: 3, name: 'Growth', rate: 4, reserved: true, hand: 1, who: 'R2' },
+    { n: 4, name: 'Leader', rate: 3, reserved: true, hand: 3, who: 'R1' },
+    { n: 5, name: 'Executive', rate: 2, reserved: false, hand: 5, who: '—' },
+    { n: 6, name: 'Ambassador', rate: 1, reserved: false, hand: 2, who: '—' },
+  ];
+  let rows = [];
+  let liveTotal = 0, poolTotal = 0;
+
+  const directAmt = price * directRate / 100;
+  rows.push({ who: 'Sponsor S', rel: 'Direct referral', rate: directRate, amt: directAmt, dest: 'live' });
+  liveTotal += directAmt;
+
+  lvl.forEach(function(l) {
+    const amt = price * l.rate / 100;
+    const label = l.reserved
+      ? (l.who + ' (Reserved, Hand ' + l.hand + ')')
+      : ((l.who && l.who !== '—') ? l.who : 'Upline') + ' (Hand ' + l.hand + ')';
+    rows.push({ who: label, rel: l.name, rate: l.rate, amt: amt, dest: l.reserved ? 'pool' : 'live' });
+    if (l.reserved) poolTotal += amt; else liveTotal += amt;
+  });
+
+  const totalRate = directRate + lvl.reduce(function(s, l) { return s + l.rate; }, 0);
+  const totalAmt = price * totalRate / 100;
+
+  return {
+    rows: rows,
+    price: price,
+    totalAmt: totalAmt,
+    liveTotal: liveTotal,
+    poolTotal: poolTotal,
+    monthKey: monthKey,
+    monthLabel: meta.label,
+    status: meta.status,
+    totalRate: totalRate,
+    sales: meta.sales,
+    buyer: meta.buyer
+  };
+}
+
+function updateMonthStatusBanner(c) {
+  const el = document.getElementById('monthStatusBanner');
+  if (!el || !c) return;
+  let html = '';
+  if (c.status === 'pending') {
+    html = '<div class="note info" style="margin:0;"><b>' + c.monthLabel + '</b> = <b>Current month (PENDING)</b>. Tree-তে এই মাসের commission দেখা যাচ্ছে। <b>Next month</b> wallet-এ hit করবে। Volume: <b>' + fmt(c.price) + '</b> · Sales: <b>' + c.sales + '</b> · Pending: <b>' + fmt(c.totalAmt) + '</b></div>';
+  } else if (c.status === 'paid') {
+    html = '<div class="note" style="margin:0;background:var(--green-bg);border-color:var(--green-border);color:#065f46;"><b>' + c.monthLabel + '</b> = <b>PAID → E-Wallet</b> (hit on 1st of next month). Live: <b>' + fmt(c.liveTotal) + '</b> · Pool: <b>' + fmt(c.poolTotal) + '</b> · Total: <b>' + fmt(c.totalAmt) + '</b> · Sales: <b>' + c.sales + '</b></div>';
+  } else {
+    html = '<div class="note" style="margin:0;"><b>' + c.monthLabel + '</b> = <b>Future</b> (forecast sample). Volume: <b>' + fmt(c.price) + '</b> · Sales: <b>' + c.sales + '</b> · Est. commission: <b>' + fmt(c.totalAmt) + '</b></div>';
+  }
+  el.innerHTML = html;
+}
+
+function onMonthChange() {
+  try {
+    const key = getSelectedMonthKey();
+    window._lastChain = buildChainForMonth(key);
+    updateMonthStatusBanner(window._lastChain);
+    const title = document.getElementById('animTreeTitle');
+    if (title) {
+      const st = window._lastChain.status === 'pending' ? 'PENDING' :
+                 window._lastChain.status === 'paid' ? 'PAID → wallet' : 'FUTURE';
+      const v = getViewer();
+      title.textContent = '⚡ ' + v.name + ' · ' + window._lastChain.monthLabel + ' · ' + st + ' · ' + window._lastChain.sales + ' sales · ' + fmt(window._lastChain.price);
+    }
+    if (typeof buildAnimChain === 'function') buildAnimChain();
+    if (typeof resetCommissionAnim === 'function') resetCommissionAnim();
+    if (typeof buildTreeGenealogyOnly === 'function') buildTreeGenealogyOnly();
+    // auto-show amounts for clarity when month changes
+    setTimeout(function() {
+      if (typeof playCommissionAnim === 'function') playCommissionAnim();
+    }, 200);
+  } catch (err) {
+    console.error('onMonthChange error', err);
+    const el = document.getElementById('monthStatusBanner');
+    if (el) el.innerHTML = '<div class="note" style="margin:0;background:var(--red-bg);">Error loading month: ' + err.message + '</div>';
+  }
+}
+window.onMonthChange = onMonthChange;
+
+// ---------- TREE VIEW + ANIMATED COMMISSION FLOW ----------
+function makeNodeHTML(cls, tag, cap, meta, amt) {
+  return `<div class="tnode ${cls}"><div class="circ">${PERSON}</div>` +
+    (tag ? `<div class="tag" style="color:${cls === 'reserved' ? 'var(--amber)' : 'var(--navy)'}">${tag}</div>` : '') +
+    (cap ? `<div class="cap">${cap}</div>` : '') +
+    (meta ? `<div class="cap" style="font-weight:500;color:var(--ink-soft);">${meta}</div>` : '') +
+    (amt ? `<div class="amt" style="color:${cls === 'reserved' ? 'var(--amber)' : 'var(--navy)'}">${amt}</div>` : '') + `</div>`;
+}
+
+let _animTimers = [];
+function clearAnimTimers() {
+  _animTimers.forEach(t => clearTimeout(t));
+  _animTimers = [];
+}
+
+function buildAnimChain() {
+  const c = window._lastChain;
+  const chain = document.getElementById('animChain');
+  const totals = document.getElementById('animTotals');
+  if (!chain) return;
+  if (!c) {
+    chain.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:20px;font-size:13px;">Run Chain Commission first, then open this tab.</div>';
+    totals.innerHTML = '';
+    return;
+  }
+
+  const nodes = [];
+  const viewer = getViewer();
+  // How live total is built (no company pool on Me card)
+  const liveParts = [];
+  if (c.rows[0] && c.rows[0].amt > 0) {
+    liveParts.push('Direct ' + c.rows[0].rate + '%=' + fmt(c.rows[0].amt));
+  }
+  levels.forEach(function(l, i) {
+    const row = c.rows[i + 1];
+    if (row && row.dest === 'live' && row.amt > 0) {
+      liveParts.push('L' + l.n + ' ' + l.rate + '%=' + fmt(row.amt));
+    }
+  });
+  const liveBreakdown = liveParts.length
+    ? liveParts.join(' + ') + ' = ' + fmt(c.liveTotal)
+    : fmt(c.liveTotal);
+
+  nodes.push({
+    id: 'root',
+    cls: 'root-node you-node',
+    icon: '👤',
+    name: viewer.name + ' (Me)',
+    role: viewer.id + (viewer.rank ? ' · ' + viewer.rank : '') + ' · My generation tree',
+    amt: c.liveTotal,
+    rate: null,
+    rateLabel: liveBreakdown,
+    dest: '→ My E-Wallet',
+    destCls: 'live-tag',
+    amtCls: 'live-amt',
+    extra: (function() {
+      const st = c.status === 'paid' ? 'PAID → my wallet' :
+                 c.status === 'pending' ? 'PENDING · hits my wallet next month' : 'FUTURE';
+      return st + ' · Business ' + fmt(c.price) + ' · ' + liveBreakdown;
+    })(),
+    playOrder: levels.length + 1,
+  });
+
+  const w = treeWidth || 5;
+  // Sample filled members per gen for demo (scales with month sales); capacity = w^n
+  const sales = c.sales || 1;
+  const filledAtGen = function(n) {
+    const cap = Math.pow(w, n);
+    // demo fill: more sales → more active at upper gens, capped at capacity
+    const demoFill = Math.min(cap, Math.max(1, Math.round(sales * Math.pow(w, n - 1) * 0.15) + n));
+    return { filled: demoFill, capacity: cap };
+  };
+
+  // Display top→bottom: You → L1 → L2 → … → L6 → Buyer
+  // Each level: show member amount AND what You get from this level on this sale
+  for (let i = 0; i < levels.length; i++) {
+    const l = levels[i];
+    const row = c.rows[i + 1] || { who: 'Upline', amt: 0, rate: l.rate, dest: l.reserved ? 'pool' : 'live' };
+    const isPool = row.dest === 'pool';
+    const mem = filledAtGen(l.n);
+    const levelAmt = row.amt || 0;
+    const memberGets = isPool ? 0 : levelAmt;
+    const youGets = isPool ? levelAmt : 0;
+    nodes.push({
+      id: 'lvl' + l.n,
+      cls: isPool ? 'pool' : 'live',
+      icon: isPool ? '🔒' : '👤',
+      name: row.who,
+      role: 'Gen ' + l.n + ' · ' + l.name + ' · Hand ' + l.hand + ' · ' + mem.filled + '/' + mem.capacity + ' members',
+      amt: levelAmt,
+      rate: row.rate,
+      rateLabel: row.rate + '% × ' + fmt(c.price) + ' = ' + fmt(levelAmt) +
+        (isPool ? ' · Company pool ' + fmt(youGets) : ' · Member wallet ' + fmt(memberGets)),
+      dest: isPool ? '→ Company pool ' + fmt(youGets) + ' (not in member wallet)' : '→ Member wallet ' + fmt(memberGets),
+      destCls: isPool ? 'pool-tag' : 'live-tag',
+      amtCls: isPool ? 'pool-amt' : 'live-amt',
+      extra: isPool
+        ? 'Company reserved seat · ' + fmt(youGets) + ' → company pool (viewer does not receive)'
+        : 'Live member receives ' + fmt(memberGets) + ' on this level',
+      playOrder: i + 1,
+    });
+  }
+
+  nodes.push({
+    id: 'buyer',
+    cls: 'buyer-node',
+    icon: '🛒',
+    name: (c.buyer || 'Member M') + ' (Buyer)',
+    role: (c.monthLabel || '') + ' · ' + (c.sales || 0) + ' sales · Total business',
+    amt: c.price,
+    rate: null,
+    rateLabel: null,
+    dest: null,
+    destCls: '',
+    amtCls: 'buyer-amt',
+    extra: 'Business volume: ' + fmt(c.price),
+    playOrder: -1,
+  });
+
+  // Sponsor side-branch (after buyer in list so it sits at bottom visually with buyer)
+  nodes.push({
+    id: 'sponsor',
+    cls: 'sponsor',
+    icon: '🤝',
+    name: 'Sponsor S',
+    role: 'Direct referral (sponsor tree · not placement)',
+    amt: c.rows[0].amt,
+    rate: c.rows[0].rate,
+    rateLabel: c.rows[0].rate + '% × ' + fmt(c.price) + ' = ' + fmt(c.rows[0].amt),
+    dest: '→ E-Wallet',
+    destCls: 'sponsor-tag',
+    amtCls: 'sponsor-amt',
+    playOrder: 0,
+  });
+
+  let html = '';
+  nodes.forEach((n, idx) => {
+    if (idx > 0) {
+      html += `<div class="anim-connector" id="conn-${n.id}" data-play="${n.playOrder !== undefined ? n.playOrder : 99}">
+        <div class="conn-line"></div>
+        <div class="conn-arrow">▲</div>
+      </div>`;
+    }
+    const amtStr = n.amt != null ? fmt(n.amt) : '—';
+    html += `<div class="anim-node ${n.cls}" id="anode-${n.id}" data-play="${n.playOrder !== undefined ? n.playOrder : 99}">
+      <div class="anim-node-inner">
+        <div class="anim-avatar">${n.icon}</div>
+        <div class="anim-info">
+          <div class="anim-name">${n.name}</div>
+          <div class="anim-role">${n.role}</div>
+          ${n.rateLabel ? `<div class="anim-rate-detail" id="ratedetail-${n.id}">${n.rateLabel}</div>` : ''}
+          ${n.extra ? `<div class="anim-extra" id="extra-${n.id}">${n.extra}</div>` : ''}
+          ${n.dest ? `<span class="anim-dest-tag ${n.destCls}" id="dest-${n.id}">${n.dest}</span>` : ''}
+        </div>
+        <div class="anim-amt-box">
+          <div class="anim-amt ${n.amtCls}" id="amt-${n.id}">${amtStr}</div>
+          ${n.rate != null ? `<div class="anim-rate" id="rate-${n.id}">@ ${n.rate}%</div>` : (n.id === 'root' ? `<div class="anim-rate" id="rate-${n.id}">pool total</div>` : '')}
+        </div>
+      </div>
+    </div>`;
+  });
+  chain.innerHTML = html;
+
+  const statusLabel = c.status === 'paid' ? 'Wallet credited' : c.status === 'pending' ? 'Pending → next month' : 'Future';
+  const v = getViewer();
+  totals.innerHTML = `
+    <div class="at-card"><div class="at-label">Viewer</div><div class="at-val" style="font-size:12px;">${v.name}</div></div>
+    <div class="at-card"><div class="at-label">Month volume</div><div class="at-val">${fmt(c.price)}</div></div>
+    <div class="at-card live"><div class="at-label">My live total</div><div class="at-val">${fmt(c.liveTotal)}</div></div>
+    <div class="at-card" style="min-width:120px;"><div class="at-label">Status</div><div class="at-val" style="font-size:12px;">${statusLabel}</div></div>`;
+
+  nodes.forEach(n => {
+    const el = document.getElementById('anode-' + n.id);
+    if (el) el.classList.add('visible');
+  });
+  document.querySelectorAll('.anim-connector').forEach(el => el.classList.add('visible'));
+}
+
+function resetCommissionAnim() {
+  clearAnimTimers();
+  document.querySelectorAll('.anim-amt, .anim-rate, .anim-dest-tag, .anim-rate-detail, .anim-extra').forEach(el => el.classList.remove('show'));
+  document.querySelectorAll('.anim-node').forEach(el => el.classList.remove('collecting'));
+  document.querySelectorAll('.anim-connector').forEach(el => el.classList.remove('flowing'));
+  document.querySelectorAll('.anim-particle').forEach(el => el.remove());
+}
+
+function playCommissionAnim() {
+  const c = window._lastChain;
+  if (!c) {
+    buildAnimChain();
+    if (!window._lastChain) return;
+  }
+  resetCommissionAnim();
+
+  // Bottom → up: Buyer → L1 → L2 → … → L6 → You · then Sponsor (side)
+  const sequence = [
+    { id: 'buyer', delay: 0 },
+  ];
+  levels.forEach(function(l, i) {
+    sequence.push({ id: 'lvl' + l.n, delay: (i + 1) * 650 });
+  });
+  sequence.push({ id: 'root', delay: (levels.length + 1) * 650 });
+  sequence.push({ id: 'sponsor', delay: (levels.length + 2) * 650 });
+
+  sequence.forEach((step, idx) => {
+    const t = setTimeout(() => {
+      const node = document.getElementById('anode-' + step.id);
+      const amt = document.getElementById('amt-' + step.id);
+      const rate = document.getElementById('rate-' + step.id);
+      const dest = document.getElementById('dest-' + step.id);
+      const conn = document.getElementById('conn-' + step.id);
+
+      if (node) {
+        node.classList.add('collecting');
+        setTimeout(() => node.classList.remove('collecting'), 600);
+      }
+      if (conn) {
+        conn.classList.add('flowing');
+        const particle = document.createElement('div');
+        particle.className = 'anim-particle go';
+        particle.textContent = '₹';
+        conn.style.position = 'relative';
+        conn.appendChild(particle);
+        setTimeout(() => particle.remove(), 800);
+      }
+      if (amt) amt.classList.add('show');
+      if (rate) rate.classList.add('show');
+      if (dest) dest.classList.add('show');
+      const rateDetail = document.getElementById('ratedetail-' + step.id);
+      const extra = document.getElementById('extra-' + step.id);
+      if (rateDetail) rateDetail.classList.add('show');
+      if (extra) extra.classList.add('show');
+    }, step.delay);
+    _animTimers.push(t);
+  });
+}
+
+function buildTreeGenealogyOnly() {
+  const canvas = document.getElementById('treeCanvas');
+  if (!canvas) return;
+  const c = window._lastChain;
+  canvas.innerHTML = '';
+  if (!c) {
+    canvas.innerHTML = '<div class="note" style="margin:12px;">Select a month or run Chain Commission first.</div>';
+    return;
+  }
+  _renderGenealogyCanvas(canvas, c);
+}
+
+function buildTree() {
+  // Prefer selected month data for tree view
+  if (document.getElementById('t_month')) {
+    window._lastChain = buildChainForMonth(getSelectedMonthKey());
+    updateMonthStatusBanner(window._lastChain);
+    const title = document.getElementById('animTreeTitle');
+    if (title && window._lastChain) {
+      const st = window._lastChain.status === 'pending' ? 'PENDING (this month)' :
+                 window._lastChain.status === 'paid' ? 'PAID → wallet' : 'FUTURE';
+      title.textContent = `⚡ ${window._lastChain.monthLabel} · ${st} · bottom → up`;
+    }
+  }
+  buildAnimChain();
+
+  const canvas = document.getElementById('treeCanvas');
+  const c = window._lastChain;
+  canvas.innerHTML = '';
+  if (!c) {
+    canvas.innerHTML = '<div class="note" style="margin:12px;">Select a month or run Chain Commission first.</div>';
+    return;
+  }
+  _renderGenealogyCanvas(canvas, c);
+}
+
+function _renderGenealogyCanvas(canvas, c) {
+  // Structure: You (root) → Gen1 has Width children → Gen2 under active path has Width children → …
+  // Same amounts as animation / month chain (c.rows)
+  const colors = ['#b23b3b', '#2471a3', '#1e8449', '#8e44ad', '#117864', '#b8862c'];
+  const cap = treeWidth || 5;
+  const cellW = 72;
+  const gap = 10;
+  const rowW = cap * cellW + (cap - 1) * gap;
+  canvas.style.width = Math.max(rowW, 400) + 'px';
+  const centerX = k => k * (cellW + gap) + cellW / 2;
+
+  const statusTxt = c.status === 'paid' ? 'PAID→wallet' : c.status === 'pending' ? 'PENDING' : 'FUTURE';
+  const viewer = getViewer();
+  let html = '';
+  const poolBits = [];
+  levels.forEach(function(l, i) {
+    const row = c.rows[i + 1];
+    if (row && row.dest === 'pool' && row.amt > 0) poolBits.push('L' + l.n + '=' + fmt(row.amt));
+  });
+  const liveBits = [];
+  if (c.rows[0] && c.rows[0].amt > 0) liveBits.push('Dir ' + fmt(c.rows[0].amt));
+  levels.forEach(function(l, i) {
+    const row = c.rows[i + 1];
+    if (row && row.dest === 'live' && row.amt > 0) liveBits.push('L' + l.n + ' ' + fmt(row.amt));
+  });
+  html += '<div class="rootRow"><div class="tcell" style="width:' + cellW + 'px;">' +
+    makeNodeHTML('root', 'ME', viewer.name, liveBits.join('+') || statusTxt, fmt(c.liveTotal)) +
+    '</div></div>';
+  html += '<div style="text-align:center;font-size:11px;color:var(--ink-soft);margin:4px 0 8px;"><b>' + viewer.name + '</b> · ' + fmt(c.liveTotal) + ' = ' + (liveBits.join(' + ') || '—') + ' · Business ' + fmt(c.price) + '</div>';
+
+  let prevX = rowW / 2;
+
+  levels.forEach(function(l, i) {
+    const row = c.rows[i + 1] || { amt: 0, rate: l.rate, dest: l.reserved ? 'pool' : 'live', who: 'Upline' };
+    const color = colors[i % colors.length];
+    const handIdx = Math.min(Math.max(l.hand || 1, 1), cap) - 1;
+    const activeX = centerX(handIdx);
+    const minX = centerX(0), maxX = centerX(cap - 1);
+    const levelComm = row.amt || 0;
+    const capacity = Math.pow(cap, l.n);
+    const filled = Math.min(capacity, Math.max(1, (c.sales || 1) * l.n));
+
+    let path = 'M' + prevX + ',0 V13 M' + minX + ',13 H' + maxX;
+    for (let k = 0; k < cap; k++) path += ' M' + centerX(k) + ',13 V26';
+
+    html += '<div class="genblock">';
+    html += '<div class="genhead" style="color:' + color + '"><span class="dot" style="background:' + color + '"></span>' +
+      'Gen ' + l.n + ' — ' + l.name + (l.reserved ? ' (Reserved)' : '') +
+      ' · ' + filled + '/' + capacity + ' members · This path: ' + fmt(levelComm) +
+      ' (' + l.rate + '% × ' + fmt(c.price) + ')</div>';
+    html += '<svg class="connSvg" viewBox="0 0 ' + rowW + ' 26" preserveAspectRatio="none"><path d="' + path + '" fill="none" stroke="' + color + '" stroke-width="1.7"/></svg>';
+    html += '<div class="noderow" style="width:' + rowW + 'px;gap:' + gap + 'px;">';
+
+    for (let k = 0; k < cap; k++) {
+      if (k === handIdx) {
+        const cls = l.reserved ? 'reserved' : 'active';
+        const tag = l.reserved ? 'RCS' : 'H' + (k + 1);
+        const label = (l.who && l.who !== '—') ? l.who : ('L' + l.n);
+        html += '<div class="tcell" style="width:' + cellW + 'px;">' +
+          makeNodeHTML(cls, tag, label, l.rate + '% × ' + fmt(c.price), fmt(levelComm)) + '</div>';
+      } else {
+        html += '<div class="tcell" style="width:' + cellW + 'px;">' +
+          makeNodeHTML('', 'H' + (k + 1), '—', 'sibling', '') + '</div>';
+      }
+    }
+    html += '</div></div>';
+    prevX = activeX;
+  });
+
+  // Buyer at bottom of placement path
+  const buyerName = c.buyer || 'Member M';
+  html += '<div class="rootRow" style="margin-top:16px;"><div class="tcell" style="width:' + cellW + 'px;">' +
+    makeNodeHTML('buyer', 'BUYER', buyerName, (c.sales || 0) + ' sales', fmt(c.price)) + '</div></div>';
+
+  // Sponsor side branch — same direct amount as animation
+  const directAmt = (c.rows && c.rows[0]) ? c.rows[0].amt : 0;
+  const directRate = (c.rows && c.rows[0]) ? c.rows[0].rate : 5;
+  html += '<div class="sponsorRow"><span class="sptext">SPONSOR tree (Direct ' + directRate + '%) →</span>' +
+    makeNodeHTML('active', 'DIR', 'Sponsor S', directRate + '% × ' + fmt(c.price), fmt(directAmt)) + '</div>';
+
+  canvas.innerHTML = html;
+}
+
+// Init tree with selected month (must run after DOM + levels exist)
+try {
+  onMonthChange();
+} catch (e) {
+  console.error('tree init', e);
+  if (typeof buildTree === 'function') buildTree();
+}
+
+// ---------- SELF SALE ----------
+function fillPkg() {
+  const parts = document.getElementById('s_pkg').value.split(',');
+  document.getElementById('s_price').value = parts[0];
+  document.getElementById('s_pv').value = parts[1];
+}
+function fillIns() {
+  const [name, prem, term] = document.getElementById('s_insplan').value.split(',');
+  document.getElementById('s_prem').value = prem;
+  document.getElementById('s_emiterm').value = term;
+}
+function runSelf() {
+  const name = document.getElementById('s_name').value;
+  const memId = document.getElementById('s_id').value;
+  const mobile = document.getElementById('s_mobile').value;
+  const email = document.getElementById('s_email').value;
+  const sponsor = document.getElementById('s_sponsor').value;
+  const placement = document.getElementById('s_placement')?.value || sponsor;
+  const type = document.getElementById('s_type').value;
+  const date = document.getElementById('s_date')?.value || '';
+
+  const unitPrice = parseFloat(document.getElementById('s_price').value) || 0;
+  const unitPv = parseFloat(document.getElementById('s_pv').value) || 0;
+  const qty = Math.max(1, parseInt(document.getElementById('s_qty')?.value) || 1);
+  const price = unitPrice * qty;
+  const pv = unitPv * qty;
+  const rate = parseFloat(document.getElementById('s_rate').value) || 0;
+
+  const insPlanRaw = document.getElementById('s_insplan').value.split(',')[0];
+  const hasIns = insPlanRaw !== 'none';
+  const prem = parseFloat(document.getElementById('s_prem').value) || 0;
+  const emiTerm = parseInt(document.getElementById('s_emiterm').value) || 0;
+  const insRate = parseFloat(document.getElementById('s_insrate').value) || 0;
+
+  const retail = parseFloat(document.getElementById('s_retail')?.value) || 0;
+  const retailRate = parseFloat(document.getElementById('s_retailrate')?.value) || 0;
+
+  const pkgBonus = (type === 'referred') ? price * rate / 100 : 0;
+  const insCommission = hasIns ? prem * insRate / 100 : 0;
+  const retailIncome = retail * retailRate / 100;
+  const emiAmt = hasIns && emiTerm > 0 ? prem / emiTerm : 0;
+
+  // Level commission on package (same rates as Chain Commission) — paid to upline
+  let levelCommTotal = 0;
+  const levelBreakdown = levels.map(l => {
+    const amt = price * l.rate / 100;
+    levelCommTotal += amt;
+    return { n: l.n, name: l.name, rate: l.rate, amt, reserved: l.reserved };
+  });
+
+  const networkCommission = pkgBonus + insCommission + levelCommTotal;
+  const memberOwnIncome = retailIncome; // self business retail margin
+  const orderValue = price + (hasIns ? prem : 0);
+  const pkgName = (document.getElementById('s_pkg').value.split(',')[2] || 'Package');
+
+  // Hero totals
+  document.getElementById('selfTotal').innerHTML = `
+    <div class="stat-row">
+      <div class="stat highlight" style="min-width:140px;">
+        <span>Order value</span>
+        <b style="font-size:20px;margin-top:4px;">${fmt(orderValue)}</b>
+      </div>
+      <div class="stat green" style="min-width:140px;">
+        <span>Network commission</span>
+        <b style="font-size:20px;margin-top:4px;">${fmt(networkCommission)}</b>
+      </div>
+      <div class="stat amber" style="min-width:140px;">
+        <span>Your self-business income</span>
+        <b style="font-size:20px;margin-top:4px;">${fmt(memberOwnIncome)}</b>
+      </div>
+      <div class="stat" style="min-width:140px;">
+        <span>PV generated</span>
+        <b style="font-size:20px;margin-top:4px;">${pv} PV</b>
+      </div>
+    </div>`;
+
+  // Visual summary cards
+  const typeLabel = type === 'referred' ? 'Referral (new join)' : 'Self-purchase / upgrade';
+  const typeColor = type === 'referred' ? 'green' : 'amber';
+  document.getElementById('selfCards').innerHTML = `
+    <div class="flow-split">
+      <div class="split-card ${type === 'referred' ? 'live' : 'pool'}">
+        <div class="sc-label">Purchase type</div>
+        <div class="sc-amt" style="font-size:15px;">${typeLabel}</div>
+        <div class="sc-pct">${type === 'referred' ? 'Sponsor gets Direct Bonus' : 'No Direct Bonus · PV only'}</div>
+      </div>
+      <div class="split-card live">
+        <div class="sc-label">Package line</div>
+        <div class="sc-amt" style="font-size:15px;">${pkgName}</div>
+        <div class="sc-pct">${qty} × ${fmt(unitPrice)} = ${fmt(price)} · ${pv} PV</div>
+      </div>
+      <div class="split-card ${hasIns ? 'pool' : 'live'}">
+        <div class="sc-label">Insurance</div>
+        <div class="sc-amt" style="font-size:15px;">${hasIns ? insPlanRaw : 'None'}</div>
+        <div class="sc-pct">${hasIns ? fmt(prem) + ' / ' + emiTerm + ' EMI × ' + fmt(emiAmt) : 'No add-on'}</div>
+      </div>
+    </div>`;
+
+  // Detail table
+  document.getElementById('selfResult').innerHTML = `
+    <div class="section-label">Order breakdown</div>
+    <div class="tblwrap">
+    <table>
+      <thead><tr><th>Item</th><th>Detail</th><th class="num">Amount</th></tr></thead>
+      <tbody>
+        <tr><td>Date</td><td>${date || '—'}</td><td class="num">—</td></tr>
+        <tr><td>Member</td><td><b>${name}</b> · ${memId}</td><td class="num">—</td></tr>
+        <tr><td>Contact</td><td>${mobile}<br><span style="color:var(--ink-soft);font-size:12px;">${email}</span></td><td class="num">—</td></tr>
+        <tr><td>Sponsor / Placement</td><td>Sponsor <b>${sponsor}</b> · Placement <b>${placement}</b></td><td class="num">—</td></tr>
+        <tr><td>Package</td><td>${pkgName} · ${qty} unit(s) · ${unitPv} PV each</td><td class="num">${fmt(price)}</td></tr>
+        <tr><td>Direct Bonus</td><td>${type === 'referred' ? rate + '% × ' + fmt(price) + ' → Sponsor ' + sponsor : '— (self-purchase: no sponsor bonus)'}</td><td class="num">${fmt(pkgBonus)}</td></tr>
+        <tr><td>PV credited</td><td>Personal PV + upline Group PV</td><td class="num">${pv} PV</td></tr>
+        ${hasIns ? `
+        <tr><td>Insurance premium</td><td>${insPlanRaw} · ${emiTerm} months</td><td class="num">${fmt(prem)}</td></tr>
+        <tr><td>EMI per month</td><td>${fmt(prem)} ÷ ${emiTerm}</td><td class="num">${fmt(emiAmt)}</td></tr>
+        <tr><td>Insurance commission</td><td>${insRate}% of first premium → seller</td><td class="num">${fmt(insCommission)}</td></tr>` : `
+        <tr><td>Insurance</td><td>Not selected</td><td class="num">—</td></tr>`}
+        <tr><td>Self retail sales</td><td>${fmt(retail)} volume @ ${retailRate}%</td><td class="num">${fmt(retailIncome)}</td></tr>
+        <tr class="total"><td colspan="2">Network commission (Direct + Insurance + Levels)</td><td class="num">${fmt(networkCommission)}</td></tr>
+        <tr class="total"><td colspan="2">Member own income (retail self-business)</td><td class="num">${fmt(memberOwnIncome)}</td></tr>
+      </tbody>
+    </table>
+    </div>`;
+
+  // Network level distribution on this order
+  const liveLevel = levelBreakdown.filter(x => !x.reserved).reduce((s, x) => s + x.amt, 0);
+  const poolLevel = levelBreakdown.filter(x => x.reserved).reduce((s, x) => s + x.amt, 0);
+  document.getElementById('selfNetwork').innerHTML = `
+    <div class="section-label">Network level commission on this package (${fmt(price)})</div>
+    <div class="tblwrap">
+    <table>
+      <thead><tr><th>Level</th><th>Name</th><th class="num">Rate</th><th class="num">Amount</th><th>To</th></tr></thead>
+      <tbody>
+        ${type === 'referred' ? `<tr style="background:var(--green-bg);"><td>—</td><td>Sponsor Direct Bonus</td><td class="num">${rate}%</td><td class="num">${fmt(pkgBonus)}</td><td>Sponsor E-Wallet</td></tr>` : ''}
+        ${levelBreakdown.map(x => `<tr class="${x.reserved ? 'pool' : ''}">
+          <td>L${x.n}</td><td>${x.name}</td><td class="num">${x.rate}%</td><td class="num">${fmt(x.amt)}</td>
+          <td>${x.reserved ? 'Company Reserved Pool' : 'Upline E-Wallet'}</td>
+        </tr>`).join('')}
+        <tr class="total"><td colspan="3">Level commission subtotal</td><td class="num">${fmt(levelCommTotal)}</td><td></td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="stat-row" style="margin-top:12px;">
+      <div class="stat green"><b>${fmt(liveLevel + pkgBonus)}</b><span>To live wallets (levels + direct)</span></div>
+      <div class="stat amber"><b>${fmt(poolLevel)}</b><span>To Your reserved pool</span></div>
+      <div class="stat"><b>${fmt(levelCommTotal + pkgBonus + insCommission)}</b><span>All network payouts on order</span></div>
+    </div>`;
+
+  document.getElementById('selfFormula').innerHTML =
+`<span class="k">FORMULA — Self Business</span>
+order_value         = package_price × qty  ${hasIns ? '+ insurance_premium' : ''}
+direct_bonus        = (type==referred) ? order_package × direct_rate : 0
+level_commission(i) = package_total × level_rate[i]
+insurance_comm      = (plan) ? premium × ins_rate : 0
+retail_income       = retail_volume × retail_rate     // member's own self-business
+network_commission  = direct_bonus + Σ level_commission + insurance_comm
+member.PV          += package_PV × qty
+
+<span class="k">This order:</span> type=${type}, package=${fmt(price)}, PV=${pv},
+direct=${fmt(pkgBonus)}, levels=${fmt(levelCommTotal)}, ins=${fmt(insCommission)},
+retail_income=${fmt(retailIncome)}, network_total=${fmt(networkCommission)}`;
+
+  renderInsSales();
+}
+
+// 15 insurance policies sold by this member — next EMI due with urgency color
+function renderInsSales() {
+  const tbody = document.getElementById('insSalesBody');
+  const kpi = document.getElementById('insKpi');
+  if (!tbody) return;
+
+  const plans = [
+    { name: 'Family Protect FP12', prem: 12000, term: 12 },
+    { name: 'Health Shield HS06', prem: 6000, term: 6 },
+    { name: 'Product Protection PP01', prem: 2400, term: 12 },
+    { name: 'Life Secure LS24', prem: 24000, term: 24 },
+    { name: 'Family Protect FP12', prem: 12000, term: 12 },
+  ];
+  const customers = [
+    'Karim Hossain', 'Nusrat Jahan', 'Imran Ali', 'Sultana Begum', 'Fahim Rahman',
+    'Ayesha Khan', 'Tanvir Ahmed', 'Mitu Chowdhury', 'Rafiq Islam', 'Shabnam Akter',
+    'Jahid Hasan', 'Laila Parvin', 'Omar Faruk', 'Nasrin Sultana', 'Sakib Al Hasan'
+  ];
+  const policyIds = [
+    'POL-24001','POL-24002','POL-24003','POL-24004','POL-24005',
+    'POL-24006','POL-24007','POL-24008','POL-24009','POL-24010',
+    'POL-24011','POL-24012','POL-24013','POL-24014','POL-24015'
+  ];
+
+  // Fixed sample due offsets (days from today) — mix of safe, soon, urgent, overdue
+  const dueOffsets = [45, 32, 28, 18, 14, 11, 9, 7, 5, 3, 2, 1, 0, -2, -5];
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  let overdue = 0, dueSoon = 0, activeOk = 0, totalEmi = 0, totalPrem = 0;
+
+  const rows = customers.map((cust, i) => {
+    const plan = plans[i % plans.length];
+    const emi = plan.prem / plan.term;
+    totalEmi += emi;
+    totalPrem += plan.prem;
+    const due = new Date(today);
+    due.setDate(due.getDate() + dueOffsets[i]);
+    const daysLeft = dueOffsets[i];
+    let urgency, rowCls, statusLabel, statusCls;
+    if (daysLeft < 0) {
+      urgency = 'overdue'; rowCls = 'ins-row-overdue'; statusLabel = 'Overdue'; statusCls = 'overdue';
+      overdue++;
+    } else if (daysLeft <= 2) {
+      urgency = 'critical'; rowCls = 'ins-row-critical'; statusLabel = 'Due'; statusCls = 'due';
+      dueSoon++;
+    } else if (daysLeft <= 7) {
+      urgency = 'urgent'; rowCls = 'ins-row-urgent'; statusLabel = 'Due soon'; statusCls = 'due-soon';
+      dueSoon++;
+    } else if (daysLeft <= 14) {
+      urgency = 'warn'; rowCls = 'ins-row-warn'; statusLabel = 'Upcoming'; statusCls = 'due-soon';
+      activeOk++;
+    } else {
+      urgency = 'ok'; rowCls = 'ins-row-ok'; statusLabel = 'Active'; statusCls = 'active';
+      activeOk++;
+    }
+    const dueStr = due.toISOString().slice(0, 10);
+    const daysText = daysLeft < 0 ? (Math.abs(daysLeft) + 'd late') : (daysLeft === 0 ? 'Today' : daysLeft + 'd');
+    return { i: i + 1, pid: policyIds[i], cust, plan: plan.name, prem: plan.prem, emi, dueStr, daysLeft, daysText, urgency, rowCls, statusLabel, statusCls };
+  });
+
+  tbody.innerHTML = rows.map(r => `
+    <tr class="${r.rowCls}">
+      <td>${r.i}</td>
+      <td><b>${r.cust}</b><br><span style="font-size:11px;color:var(--ink-soft);">${r.pid}</span></td>
+      <td>${r.plan}</td>
+      <td class="num">${fmt(r.prem)}</td>
+      <td class="num">${fmt(r.emi)}</td>
+      <td>${r.dueStr}</td>
+      <td><span class="ins-days ${r.urgency}">${r.daysText}</span></td>
+      <td><span class="ins-status-pill ${r.statusCls}">${r.statusLabel}</span></td>
+    </tr>`).join('');
+
+  if (kpi) {
+    kpi.innerHTML = `
+      <div class="stat"><b>15</b><span>Policies sold by you</span></div>
+      <div class="stat green"><b>${activeOk}</b><span>OK / upcoming</span></div>
+      <div class="stat amber"><b>${dueSoon}</b><span>Due soon (≤7 days)</span></div>
+      <div class="stat" style="background:var(--red-bg);border-color:var(--red-border);"><b style="color:var(--red);">${overdue}</b><span>Overdue</span></div>
+      <div class="stat"><b>${fmt(totalPrem)}</b><span>Total premium book</span></div>
+      <div class="stat"><b>${fmt(totalEmi)}</b><span>Monthly EMI collectible</span></div>`;
+  }
+}
+runSelf();
+
+// ---------- EMI SIMULATION ----------
+function runEmi() {
+  const premium = parseFloat(document.getElementById('e_premium').value) || 0;
+  const count = parseInt(document.getElementById('e_count').value) || 12;
+  const emi = premium / count;
+  let bal = parseFloat(document.getElementById('e_open').value) || 0;
+  const credits = document.getElementById('e_credits').value.split(',').map(x => parseFloat(x) || 0);
+  const payouts = document.getElementById('e_payouts').value.split(',').map(x => parseFloat(x) || 0);
+  const months = Math.max(credits.length, payouts.length);
+
+  let rows = [];
+  let totalDeposited = 0, totalWithdrawn = 0;
+  for (let m = 0; m < months; m++) {
+    const open = bal;
+    const cr = credits[m] || 0;
+    let payout = payouts[m] || 0;
+    bal += cr;
+    let note = '';
+    let paidEmi = emi;
+    if (bal >= emi) {
+      bal -= emi;
+      totalDeposited += emi;
+    } else {
+      paidEmi = 0;
+      note = 'EMI Due (short balance) — will sweep on next credit';
+    }
+    const withdrawable = Math.max(0, bal);
+    if (payout > withdrawable) payout = withdrawable;
+    bal -= payout;
+    totalWithdrawn += payout;
+    rows.push({ m: m + 1, open, cr, emi: paidEmi, payout, close: bal, note });
+  }
+  document.querySelector('#emiTable tbody').innerHTML = rows.map(r => `<tr>
+    <td>Month ${r.m}</td>
+    <td class="num">${fmt(r.open)}</td>
+    <td class="num ledger-in">+${fmt(r.cr)}</td>
+    <td class="num ${r.emi > 0 ? 'ledger-out' : ''}">${r.emi > 0 ? '-' + fmt(r.emi) : '—'}</td>
+    <td class="num ${r.payout > 0 ? 'ledger-out' : ''}">${r.payout > 0 ? '-' + fmt(r.payout) : '—'}</td>
+    <td class="num">${fmt(r.close)}</td>
+    <td>${r.note ? '<span class="status-due">' + r.note + '</span>' : '<span class="status-paid">EMI Paid</span>'}</td>
+  </tr>`).join('');
+
+  document.getElementById('emiStats').innerHTML = `
+    <div class="stat"><b>${fmt(emi)}</b><span>EMI per month (${fmt(premium)} ÷ ${count})</span></div>
+    <div class="stat green"><b>${fmt(totalDeposited)}</b><span>Total deposited</span></div>
+    <div class="stat amber"><b>${fmt(premium - totalDeposited)}</b><span>Remaining premium</span></div>
+    <div class="stat"><b>${fmt(totalWithdrawn)}</b><span>Total withdrawn</span></div>`;
+
+  document.getElementById('emiFormula').innerHTML =
+`<span class="k">FORMULA</span>
+emi_amount        = premium ÷ emi_count = ${fmt(premium)} ÷ ${count} = ${fmt(emi)}
+closing_balance   = opening_balance + commission_credit − emi_deducted − payout_withdrawn
+withdrawable      = wallet_balance − emi_reserve (upcoming EMI held from 7 days before due)
+if balance < emi  → status = "Due", retry daily in grace period, sweep on next credit (INS-07)`;
+  window._lastEmi = { rows, emi };
+}
+runEmi();
+
+// ---------- COMBINED LEDGER ----------
+window._ledgerRows = [];
+
+function runLedger() {
+  const c = window._lastChain || window._lastChainFromCalc;
+  const e = window._lastEmi;
+  // Rich sample dataset (independent of other tabs so ledger always works)
+  const entries = [
+    { d: '2026-08-02', desc: 'Direct bonus — referral Karim H. (Pack ₹450)', cat: 'direct', catLabel: 'Direct bonus', status: 'settled', amt: 22.50 },
+    { d: '2026-08-02', desc: 'Level L1 commission — downline sale', cat: 'level', catLabel: 'Level commission', status: 'settled', amt: 45.00 },
+    { d: '2026-08-05', desc: 'Level L2 commission — team volume', cat: 'level', catLabel: 'Level commission', status: 'settled', amt: 27.00 },
+    { d: '2026-08-08', desc: 'Insurance commission — POL-24001 first premium', cat: 'insurance_comm', catLabel: 'Insurance commission', status: 'settled', amt: 600.00 },
+    { d: '2026-08-10', desc: 'Self-business retail margin (Aug)', cat: 'retail', catLabel: 'Self-business retail', status: 'settled', amt: 800.00 },
+    { d: '2026-08-12', desc: 'Insurance EMI cut — customer POL-24003', cat: 'emi', catLabel: 'Insurance EMI cut', status: 'settled', amt: -500.00 },
+    { d: '2026-08-15', desc: 'Own premium EMI — self policy FP12', cat: 'own_premium', catLabel: 'Own premium', status: 'settled', amt: -1000.00 },
+    { d: '2026-08-18', desc: 'Rank reward — Bronze cash', cat: 'rank', catLabel: 'Rank reward', status: 'settled', amt: 50.00 },
+    { d: '2026-08-20', desc: 'Payout to bank · UTR-8821', cat: 'payout', catLabel: 'Payout', status: 'settled', amt: -1200.00 },
+    { d: '2026-08-22', desc: 'Insurance EMI cut — POL-24007', cat: 'emi', catLabel: 'Insurance EMI cut', status: 'settled', amt: -1000.00 },
+    { d: '2026-08-25', desc: 'Level L5 commission — deep line', cat: 'level', catLabel: 'Level commission', status: 'settled', amt: 9.00 },
+    { d: '2026-08-28', desc: 'Reversal — duplicate EMI cut POL-24007', cat: 'reversal', catLabel: 'Reversal', status: 'settled', amt: 1000.00 },
+    { d: '2026-08-28', desc: 'Insurance EMI cut — POL-24007 (corrected)', cat: 'emi', catLabel: 'Insurance EMI cut', status: 'settled', amt: -1000.00 },
+    // September = current month → pending until next month wallet hit
+    { d: '2026-09-03', desc: 'Direct bonus — referral Rima Akter (pending month)', cat: 'direct', catLabel: 'Direct bonus', status: 'pending', amt: 75.00 },
+    { d: '2026-09-03', desc: 'Level commissions Sep volume ₹1,500 (pending)', cat: 'level', catLabel: 'Level commission', status: 'pending', amt: 285.00 },
+    { d: '2026-09-05', desc: 'Insurance commission — POL-24012 premium', cat: 'insurance_comm', catLabel: 'Insurance commission', status: 'pending', amt: 300.00 },
+    { d: '2026-09-08', desc: 'Self-business retail (Sep to date)', cat: 'retail', catLabel: 'Self-business retail', status: 'pending', amt: 450.00 },
+    { d: '2026-09-10', desc: 'Insurance EMI cut — POL-24001 monthly', cat: 'emi', catLabel: 'Insurance EMI cut', status: 'settled', amt: -1000.00 },
+    { d: '2026-09-12', desc: 'Own premium EMI — self policy FP12', cat: 'own_premium', catLabel: 'Own premium', status: 'settled', amt: -1000.00 },
+    { d: '2026-09-15', desc: 'Insurance EMI cut — POL-24005 (due soon)', cat: 'emi', catLabel: 'Insurance EMI cut', status: 'settled', amt: -200.00 },
+    { d: '2026-09-18', desc: 'Payout request — processing', cat: 'payout', catLabel: 'Payout', status: 'processing', amt: -500.00 },
+    { d: '2026-09-20', desc: 'Level L1 — mid-month sale (pending)', cat: 'level', catLabel: 'Level commission', status: 'pending', amt: 50.00 },
+    { d: '2026-09-22', desc: 'Insurance EMI overdue sweep — POL-24014', cat: 'emi', catLabel: 'Insurance EMI cut', status: 'settled', amt: -1000.00 },
+    { d: '2026-09-25', desc: 'Direct bonus — new join TBD (pending)', cat: 'direct', catLabel: 'Direct bonus', status: 'pending', amt: 25.00 },
+  ];
+
+  // Optionally merge live chain amounts as extra settled rows if available
+  if (c && c.rows && c.status === 'paid') {
+    // already have sample; skip double-count
+  }
+
+  let bal = 0;
+  window._ledgerRows = entries.map(function(x) {
+    // Pending does not change withdrawable balance yet — still show running "book" balance for demo
+    bal += x.amt;
+    return {
+      date: x.d,
+      desc: x.desc,
+      cat: x.cat,
+      catLabel: x.catLabel,
+      status: x.status,
+      amt: x.amt,
+      bal: bal
+    };
+  });
+
+  filterLedger();
+}
+
+function filterLedger() {
+  const status = (document.getElementById('led_status') || {}).value || 'all';
+  const cat = (document.getElementById('led_cat') || {}).value || 'all';
+  const dir = (document.getElementById('led_dir') || {}).value || 'all';
+  const q = ((document.getElementById('led_q') || {}).value || '').toLowerCase().trim();
+  const rows = window._ledgerRows || [];
+  const filtered = rows.filter(function(r) {
+    if (status !== 'all' && r.status !== status) return false;
+    if (cat !== 'all' && r.cat !== cat) return false;
+    if (dir === 'in' && r.amt < 0) return false;
+    if (dir === 'out' && r.amt >= 0) return false;
+    if (q && r.desc.toLowerCase().indexOf(q) < 0 && r.catLabel.toLowerCase().indexOf(q) < 0) return false;
+    return true;
+  });
+
+  const tbody = document.getElementById('ledgerBody') || document.querySelector('#ledgerTable tbody');
+  const empty = document.getElementById('ledgerEmpty');
+  if (!tbody) return;
+
+  if (!filtered.length) {
+    tbody.innerHTML = '';
+    if (empty) empty.style.display = 'block';
+  } else {
+    if (empty) empty.style.display = 'none';
+    tbody.innerHTML = filtered.map(function(r) {
+      const stCls = r.status === 'settled' ? 'active' : r.status === 'pending' ? 'due-soon' : 'due';
+      const stTxt = r.status === 'settled' ? 'Settled' : r.status === 'pending' ? 'Pending' : 'Processing';
+      return '<tr class="' + (r.status === 'pending' ? 'ins-row-warn' : r.status === 'processing' ? 'ins-row-urgent' : '') + '">' +
+        '<td>' + r.date + '</td>' +
+        '<td>' + r.desc + '</td>' +
+        '<td>' + r.catLabel + '</td>' +
+        '<td><span class="ins-status-pill ' + stCls + '">' + stTxt + '</span></td>' +
+        '<td class="num ' + (r.amt >= 0 ? 'ledger-in' : 'ledger-out') + '">' + (r.amt >= 0 ? '+' : '') + fmt(r.amt) + '</td>' +
+        '<td class="num">' + fmt(r.bal) + '</td>' +
+        '</tr>';
+    }).join('');
+  }
+
+  // KPI on full dataset (not filtered) for true wallet picture
+  const all = rows;
+  const settledIn = all.filter(function(r) { return r.status === 'settled' && r.amt > 0; }).reduce(function(s, r) { return s + r.amt; }, 0);
+  const settledOut = all.filter(function(r) { return r.status === 'settled' && r.amt < 0; }).reduce(function(s, r) { return s + r.amt; }, 0);
+  const pendingIn = all.filter(function(r) { return r.status === 'pending' && r.amt > 0; }).reduce(function(s, r) { return s + r.amt; }, 0);
+  const emiTotal = all.filter(function(r) { return r.cat === 'emi'; }).reduce(function(s, r) { return s + r.amt; }, 0);
+  const ownPrem = all.filter(function(r) { return r.cat === 'own_premium'; }).reduce(function(s, r) { return s + r.amt; }, 0);
+  const finalBal = all.length ? all[all.length - 1].bal : 0;
+  const kpi = document.getElementById('ledgerKpi');
+  if (kpi) {
+    kpi.innerHTML = '<div class="stat-row">' +
+      '<div class="stat green"><b>' + fmt(settledIn) + '</b><span>Settled credits</span></div>' +
+      '<div class="stat" style="background:var(--red-bg);border-color:var(--red-border);"><b style="color:var(--red);">' + fmt(settledOut) + '</b><span>Settled debits</span></div>' +
+      '<div class="stat amber"><b>' + fmt(pendingIn) + '</b><span>Pending (next month hit)</span></div>' +
+      '<div class="stat"><b>' + fmt(emiTotal) + '</b><span>EMI cuts (customer)</span></div>' +
+      '<div class="stat"><b>' + fmt(ownPrem) + '</b><span>Own premium cuts</span></div>' +
+      '<div class="stat highlight"><b>' + fmt(finalBal) + '</b><span>Book balance</span></div>' +
+      '</div>';
+  }
+}
+runLedger();
+
+// ---------- RANKS & REWARDS ----------
+// Spec Table 17 sample achievement levels
+const RANK_LADDER = [
+  { id: 'starter',   name: 'Starter',   ppv: 0,   directs: 0,  team: 0,    gpv: 0,      reward: 'Welcome kit, digital badge' },
+  { id: 'bronze',    name: 'Bronze',    ppv: 100, directs: 3,  team: 10,   gpv: 1000,   reward: 'Cash ₹50 + certificate' },
+  { id: 'silver',    name: 'Silver',    ppv: 150, directs: 5,  team: 50,   gpv: 5000,   reward: 'Cash ₹200 + monthly rank bonus 1%' },
+  { id: 'gold',      name: 'Gold',      ppv: 150, directs: 8,  team: 200,  gpv: 20000,  reward: 'Cash ₹1,000 + smartphone' },
+  { id: 'platinum',  name: 'Platinum',  ppv: 150, directs: 10, team: 1000, gpv: 100000, reward: 'Cash ₹5,000 + domestic trip' },
+  { id: 'diamond',   name: 'Diamond',   ppv: 150, directs: 12, team: 5000, gpv: 500000, reward: 'Cash ₹25,000 + international trip + insurance-premium credit' },
+];
+
+function meetsRank(stats, rank) {
+  return stats.ppv >= rank.ppv
+    && stats.directs >= rank.directs
+    && stats.team >= rank.team
+    && stats.gpv >= rank.gpv;
+}
+
+function pct(current, target) {
+  if (target <= 0) return 100;
+  return Math.min(100, Math.round((current / target) * 100));
+}
+
+function runRanks() {
+  const stats = {
+    ppv: parseFloat(document.getElementById('r_ppv').value) || 0,
+    directs: parseInt(document.getElementById('r_directs').value) || 0,
+    team: parseInt(document.getElementById('r_team').value) || 0,
+    gpv: parseFloat(document.getElementById('r_gpv').value) || 0,
+  };
+
+  // Find highest achieved rank and next rank
+  let currentIdx = 0;
+  for (let i = RANK_LADDER.length - 1; i >= 0; i--) {
+    if (meetsRank(stats, RANK_LADDER[i])) {
+      currentIdx = i;
+      break;
+    }
+  }
+  const current = RANK_LADDER[currentIdx];
+  const next = currentIdx < RANK_LADDER.length - 1 ? RANK_LADDER[currentIdx + 1] : null;
+  const isMax = !next;
+
+  // Award banner if just completed a rank above Starter (demo: always show for current if > Starter)
+  const banner = document.getElementById('rankAwardBanner');
+  if (currentIdx > 0) {
+    banner.innerHTML = `
+      <div class="award-banner">
+        <div class="award-icon">🎉</div>
+        <div>
+          <h3>${current.name} rank achieved!</h3>
+          <p>Reward unlocked: <b>${current.reward}</b><br>
+          Status: Earned → can move to Approved → Delivered (Spec fulfilment workflow)</p>
+        </div>
+      </div>`;
+  } else {
+    banner.innerHTML = '';
+  }
+
+  // Current summary
+  document.getElementById('rankCurrentSummary').innerHTML = `
+    <div class="stat-row">
+      <div class="stat highlight" style="min-width:140px;">
+        <span>Current Rank</span>
+        <b style="font-size:18px;margin-top:4px;">${current.name}</b>
+      </div>
+      <div class="stat" style="min-width:140px;">
+        <span>Next Rank</span>
+        <b style="font-size:18px;margin-top:4px;">${isMax ? '— Max —' : next.name}</b>
+      </div>
+      <div class="stat ${isMax ? 'green' : 'amber'}" style="min-width:140px;">
+        <span>${isMax ? 'All ranks complete' : 'Overall progress to next'}</span>
+        <b style="font-size:18px;margin-top:4px;">${isMax ? '100%' : overallNextPct(stats, next) + '%'}</b>
+      </div>
+    </div>`;
+
+  // Progress bars toward next rank
+  const barsEl = document.getElementById('rankProgressBars');
+  if (isMax) {
+    barsEl.innerHTML = `
+      <div class="note" style="margin:0;">
+        Congratulations — Diamond rank complete. All criteria met. Highest reward unlocked.
+      </div>`;
+  } else {
+    const criteria = [
+      { key: 'ppv',     label: 'Personal PV',      cur: stats.ppv,     need: next.ppv },
+      { key: 'directs', label: 'Direct Referrals',  cur: stats.directs, need: next.directs },
+      { key: 'team',    label: 'Team Size',         cur: stats.team,    need: next.team },
+      { key: 'gpv',     label: 'Group PV',          cur: stats.gpv,     need: next.gpv },
+    ];
+    barsEl.innerHTML = `
+      <div class="section-label">Progress to ${next.name} <span style="font-weight:500;color:var(--ink-soft);text-transform:none;letter-spacing:0;">— koto baki ache</span></div>
+      ${criteria.map(c => {
+        const p = pct(c.cur, c.need);
+        const done = c.cur >= c.need;
+        const remaining = Math.max(0, c.need - c.cur);
+        return `
+          <div class="progress-block ${done ? 'done' : ''}">
+            <div class="progress-head">
+              <span class="crit-name">${c.label} ${done ? '✓' : ''}</span>
+              <span class="crit-vals">${fmtNum(c.cur)} / ${fmtNum(c.need)}${!done ? ` · ${fmtNum(remaining)} baki` : ''}</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" style="width:${p}%"></div>
+            </div>
+            <div class="progress-pct">${p}% ${done ? '— Complete' : 'complete'}</div>
+          </div>`;
+      }).join('')}`;
+  }
+
+  // Full rank ladder
+  document.getElementById('rankLadder').innerHTML = `
+    <div class="section-label">Full rank ladder &amp; awards</div>
+    ${RANK_LADDER.map((r, i) => {
+      const achieved = meetsRank(stats, r);
+      const isCurrent = i === currentIdx;
+      const isNext = next && i === currentIdx + 1;
+      let cls = '';
+      let pill = '<span class="rank-status-pill locked">Locked</span>';
+      if (achieved && isCurrent) { cls = 'current'; pill = '<span class="rank-status-pill current">Current</span>'; }
+      else if (achieved) { cls = 'achieved'; pill = '<span class="rank-status-pill done">Achieved</span>'; }
+      else if (isNext) { cls = 'next'; pill = '<span class="rank-status-pill next">Next</span>'; }
+
+      return `
+        <div class="rank-card ${cls}">
+          <div class="rank-title">
+            <h4><span class="rank-badge ${r.id}">${r.name}</span></h4>
+            ${pill}
+          </div>
+          <div class="reward-text"><b>Reward:</b> ${r.reward}</div>
+          <div class="criteria-mini">
+            <span>PV ≥ ${fmtNum(r.ppv)}</span>
+            <span>Directs ≥ ${r.directs}</span>
+            <span>Team ≥ ${fmtNum(r.team)}</span>
+            <span>GPV ≥ ${fmtNum(r.gpv)}</span>
+          </div>
+        </div>`;
+    }).join('')}`;
+
+  document.getElementById('rankFormula').innerHTML =
+`<span class="k">RANK QUALIFICATION (Spec Table 17)</span>
+rank_achieved when:
+  personal_PV ≥ rank.ppv
+  AND direct_referrals ≥ rank.directs
+  AND team_size ≥ rank.team
+  AND group_PV ≥ rank.gpv
+
+progress(criterion) = min(100%, current / required × 100)
+remaining           = max(0, required − current)
+
+<span class="k">This member:</span> Current = ${current.name}${next ? `, Next = ${next.name}` : ' (max rank)'}`;
+}
+
+function fmtNum(n) {
+  return Number(n).toLocaleString('en-US');
+}
+
+function overallNextPct(stats, next) {
+  const parts = [
+    pct(stats.ppv, next.ppv),
+    pct(stats.directs, next.directs),
+    pct(stats.team, next.team),
+    pct(stats.gpv, next.gpv),
+  ];
+  return Math.round(parts.reduce((a, b) => a + b, 0) / parts.length);
+}
+
+runRanks();
+</script>
+</body>
+</html>
