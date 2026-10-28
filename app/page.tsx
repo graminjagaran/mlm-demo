@@ -26,29 +26,36 @@ export default function HomePage() {
           <div className="why-head">
             <div>
               <div className="eyebrow">WHY CHOOSE A CAREER IN INSURANCE</div>
-              <h2>A profession built on trust, rewarded with growth.</h2>
+              <h2>A profession built on trust,<br />rewarded with growth.</h2>
             </div>
             <div className="why-side">
               <p>India&apos;s insurance sector is growing at double digits. Here&apos;s why professionals from every background are making the switch.</p>
               <Link className="explore" href="/#roles">Explore roles <span aria-hidden="true">→</span></Link>
             </div>
           </div>
-          <div className="cards-4">
+          <div className="cards-4 why-cards">
             {[
-              ["Unlimited Earnings", "Commissions, lifetime renewals and performance bonuses — with no ceiling.", "Income cap", "None", "M12 4v16M8 8h8M9 16h6"],
-              ["Flexible Hours", "Work full-time or part-time, from anywhere, at a pace that suits your life.", "Work mode", "Your choice", "M12 7v5l3 2M12 21a9 9 0 1 0-9-9 9 9 0 0 0 9 9z"],
-              ["Expert Training", "Certification prep, sales workshops and 1:1 mentoring from top performers.", "Training cost", "Free", "M3 10l9-6 9 6-9 6-9-6zM7 12v5c0 1 2 3 5 3s5-2 5-3v-5"],
-              ["Recognition & Growth", "Fast-track leadership roles, award trips and a path to your own agency.", "Promotion", "In 12 months", "M8 20h8M12 17a5 5 0 0 0 5-5V6H7v6a5 5 0 0 0 5 5zM9 6V4h6v2"],
+              ["Unlimited Earnings", "Commissions, lifetime renewals and performance bonuses — with no ceiling.", "Income cap", "None", "rupee"],
+              ["Flexible Hours", "Work full-time or part-time, from anywhere, at a pace that suits your life.", "Work mode", "Your choice", "clock"],
+              ["Expert Training", "Certification prep, sales workshops and 1:1 mentoring from top performers.", "Training cost", "Free", "cap"],
+              ["Recognition & Growth", "Fast-track leadership roles, award trips and a path to your own agency.", "Promotion", "In 12 months", "trophy"],
             ].map(([title, text, label, value, icon]) => (
               <article className="why-card" key={title}>
-                <i>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path d={icon} stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
+                <i aria-hidden="true">
+                  {icon === "rupee" ? <span>₹</span> : null}
+                  {icon === "clock" ? (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="1.7" /><path d="M12 8v4.5l2.5 1.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" /></svg>
+                  ) : null}
+                  {icon === "cap" ? (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 10 12 6l9 4-9 4-9-4z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /><path d="M7 12.2V16c0 1.2 2.2 2.4 5 2.4s5-1.2 5-2.4v-3.8M21 10v5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" /></svg>
+                  ) : null}
+                  {icon === "trophy" ? (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M8 4h8v6a4 4 0 0 1-8 0V4z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /><path d="M8 6H5.5A2.5 2.5 0 0 0 8 10.2M16 6h2.5A2.5 2.5 0 0 1 16 10.2M12 14v2.2M9.5 20h5M10.5 16.2h3V20h-3z" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                  ) : null}
                 </i>
                 <h3>{title}</h3>
                 <p>{text}</p>
-                <div><span>{label}</span><b>{value}</b></div>
+                <div className="why-foot"><span>{label}</span><b>{value}</b></div>
               </article>
             ))}
           </div>
