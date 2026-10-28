@@ -3,7 +3,7 @@ export const site = {
   legalName: "Golden Fortune Life Multi-Services",
   tagline: "MULTI-SERVICES",
   url: "https://goldenfortunelife.com",
-  memberLogin: "https://member.goldenfortunelife.com",
+  memberLogin: "https://member.goldenfortunelife.com/login",
   phoneDisplay: "1800 000 0000",
   phoneHref: "tel:18000000000",
   whatsapp: "https://wa.me/18000000000",

@@ -25,7 +25,7 @@ export function Header() {
         <div className="wrap">
           <span>Now recruiting Insurance Advisors in {site.cities} cities across India</span>
           <nav>
-            <a href={site.memberLogin}><Icon d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4zM5 20a7 7 0 0 1 14 0" /> Advisor Login</a>
+            <a href={site.memberLogin}><Icon d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4zM5 20a7 7 0 0 1 14 0" /> Member Login</a>
             <Link href="/track/"><Icon d="M8 4h8a2 2 0 0 1 2 2v14l-6-3-6 3V6a2 2 0 0 1 2-2z" /> Track Application</Link>
             <Link href="/branches/"><Icon d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11zM12 10.5a1.5 1.5 0 1 0-1.5-1.5 1.5 1.5 0 0 0 1.5 1.5z" /> Find a Branch</Link>
             <a className="phone" href={site.phoneHref}><Icon d="M7 3h3l1.5 4-2 1.2a12 12 0 0 0 6.3 6.3L17 13l4 1.5V18a2 2 0 0 1-2.2 2A16 16 0 0 1 4 6.2 2 2 0 0 1 6 4z" /> {site.phoneDisplay}</a>

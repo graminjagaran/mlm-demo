@@ -73,7 +73,7 @@ export function Footer() {
         </div>
         <div>
           <h4>Support</h4>
-          <a href={site.memberLogin}>Advisor Login</a>
+          <a href={site.memberLogin}>Member Login</a>
           <Link href="/track/">Track Application</Link>
           <Link href="/faq/">FAQs</Link>
           <Link href="/contact/">Contact Us</Link>
