@@ -1,0 +1,12 @@
+-- Run this as the database owner, after schema.sql.
+-- Create the password in Plesk. Do not put the password in this file or in httpdocs.
+--
+-- CREATE USER gfl_website WITH PASSWORD 'set-in-plesk-only' CONNECTION LIMIT 10;
+-- GRANT CONNECT ON DATABASE your_database TO gfl_website;
+-- GRANT USAGE ON SCHEMA public TO gfl_website;
+-- GRANT INSERT ON website_inquiries TO gfl_website;
+-- GRANT SELECT (application_no, mobile, status) ON website_inquiries TO gfl_website;
+-- GRANT USAGE, SELECT ON SEQUENCE website_inquiries_id_seq TO gfl_website;
+--
+-- The admin panel keeps its own database user. That user reads this table for Website Leads.
+-- gfl_website cannot read member, wallet, or commission tables.
