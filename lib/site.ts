@@ -1,5 +1,5 @@
 export const site = {
-  name: "Golden Fortune",
+  name: "Golden Fortune Life",
   legalName: "Golden Fortune Multi-Services",
   tagline: "MULTI-SERVICES",
   url: "https://goldenfortunelife.com",
@@ -7,7 +7,7 @@ export const site = {
   phoneDisplay: "1800 000 0000",
   phoneHref: "tel:18000000000",
   whatsapp: "https://wa.me/18000000000",
-  email: "careers@goldenfortune.in",
+  email: "careers@goldenfortunelife.com",
   address: "Level 9, BKC Tower, Mumbai 400051",
   hours: "Mon–Sat, 9:30 AM – 6:30 PM",
   year1Income: "₹6.8 Lakh+",

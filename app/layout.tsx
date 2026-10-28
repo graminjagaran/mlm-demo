@@ -14,7 +14,7 @@ const jakarta = Plus_Jakarta_Sans({
 
 export const metadata: Metadata = {
   title: {
-    default: `${site.legalName} — Careers in Insurance`,
+    default: `${site.name} — Careers in Insurance`,
     template: `%s · ${site.name}`,
   },
   description:
