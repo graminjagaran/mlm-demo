@@ -81,6 +81,7 @@ button, input, select, textarea { font-family: inherit; }
   flex-shrink: 0;
   padding: 12px 18px;
 }
+.nav-links > a.nav-cta > span { color: #d4af37; }
 .nav-links > a.only-mobile { display: none; }
 .drop { position: relative; }
 .drop-menu {
@@ -91,10 +92,12 @@ button, input, select, textarea { font-family: inherit; }
 .drop:hover .drop-menu, .drop:focus-within .drop-menu { display: grid; }
 .drop-menu a { padding: 9px 10px; border-radius: 8px; font-weight: 600; color: var(--navy); }
 .drop-menu a:hover { background: #f4f6fa; }
-.search-btn {
-  width: 40px; height: 40px; border-radius: 50%; border: 1px solid #e4eaf1;
-  display: grid; place-items: center; color: var(--navy);
+.nav-links > a.search-btn,
+.nav-links > a.search-btn:hover {
+  width: auto; height: auto; padding: 0; border: 0; border-radius: 0;
+  background: transparent; color: #1c3146;
 }
+.nav-links > a.search-btn svg { width: 18px; height: 18px; }
 .nav-cta { padding: 11px 18px; }
 .only-mobile { display: none; }
 .topbar nav a { display: inline-flex; align-items: center; gap: 6px; color: #e8eef6; font-weight: 600; }
@@ -363,7 +366,7 @@ h1 { font-size: clamp(40px, 5vw, 64px); line-height: 1.05; letter-spacing: -0.03
 .statbar span { color: #7d8b99; font-size: 14.5px; }
 .about-cta { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; margin-top: 6px; }
 .about-cta .btn { color: #fff; background: #0c2340; font-size: 16px; padding: 13px 22px; }
-.about-cta .btn svg { display: block; }
+.about-cta .btn svg { display: block; color: #d4af37; }
 .about-cta .founder { margin-top: 0; }
 .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 18px 0; }
 .metrics div { background: white; border-radius: 14px; padding: 14px; border: 1px solid var(--line); }
@@ -619,6 +622,7 @@ textarea { min-height: 110px; resize: vertical; }
 .form-note { display: flex; align-items: center; gap: 6px; margin: 0; color: #8b97a6; font-size: 13px; }
 .form-note svg { color: #c4a15a; flex: none; }
 .form-foot .btn { background: #0a2540; color: #fff; border-color: #0a2540; padding: 13px 20px; font-size: 15px; }
+.form-foot .btn svg { color: #d4af37; }
 .form-error { background: #fff1f0; color: #9f2d2d; border-radius: 10px; padding: 10px 12px; }
 .form-ok { background: #f4fbf6; border: 1px solid #d7eedd; border-radius: 16px; padding: 18px; }
 .form-ok b { color: var(--navy); font-size: 18px; }
