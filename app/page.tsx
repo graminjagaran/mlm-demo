@@ -68,7 +68,7 @@ export default function HomePage() {
             <img src="/media/about.jpg" alt="Golden Fortune team" />
             <div className="recruiter-badge">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 20h8M12 17a5 5 0 0 0 5-5V6H7v6a5 5 0 0 0 5 5zM9 6V4h6v2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
-              Top Recruiter 2024
+              Top Recruiter 2026
             </div>
             <div className="years">
               <i>
@@ -84,7 +84,7 @@ export default function HomePage() {
             <div className="statbar">
               <div><b>{site.advisors}</b><span>Advisors placed</span></div>
               <div><b>{site.cities}</b><span>Cities covered</span></div>
-              <div><b className="gold-num">{site.passRate}</b><span>Exam pass rate</span></div>
+              <div><b>{site.passRate}</b><span>Exam pass rate</span></div>
             </div>
             <ul className="ticks cols">
               <li>End-to-end licensing support</li>
