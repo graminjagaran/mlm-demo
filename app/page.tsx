@@ -147,27 +147,30 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="section band" id="roadmap">
+      <section className="section roadmap" id="roadmap">
         <div className="wrap">
           <div className="why-head">
             <div>
               <div className="eyebrow">ROADMAP TO SUCCESS</div>
-              <h2>From application to achievement in 5 steps</h2>
+              <h2>From application to<br />achievement in 5 steps</h2>
             </div>
-            <p className="sub">A transparent, fully guided process — most advisors start earning within 30 days.</p>
+            <p>A transparent, fully guided process — most advisors start earning within 30 days.</p>
           </div>
-          <div className="steps">
+          <div className="road">
             {[
-              ["01", "Day 1", "Apply Online", "Share your basic details in a 2-minute form."],
-              ["02", "Day 2–3", "Career Counselling", "Meet a mentor to map goals and the right insurer."],
-              ["03", "Week 1–3", "Training & Exam", "Guided training and certification exam prep."],
-              ["04", "Week 4", "Licensing & Onboarding", "Receive your licence, code and sales toolkit."],
-              ["05", "Ongoing", "Grow & Earn", "Build your clients and step into leadership."],
-            ].map(([n, when, title, text]) => (
+              ["01", "Day 1", "Apply Online", "Share your basic details in a 2-minute form.", "done"],
+              ["02", "Day 2–3", "Career Counselling", "Meet a mentor to map goals and the right insurer.", "done"],
+              ["03", "Week 1–3", "Training & Exam", "Guided training and certification exam prep.", "current"],
+              ["04", "Week 4", "Licensing & Onboarding", "Receive your licence, code and sales toolkit.", "later"],
+              ["05", "Ongoing", "Grow & Earn", "Build your clients and step into leadership.", "later"],
+            ].map(([n, when, title, text, state]) => (
               <article className="step" key={n}>
-                <em>{n} · {when}</em>
-                <b>{title}</b>
-                <span>{text}</span>
+                <i className={`node ${state}`}>{n}</i>
+                <div className={`step-card${state === "current" ? " current" : ""}`}>
+                  <em>{when}</em>
+                  <b>{title}</b>
+                  <span>{text}</span>
+                </div>
               </article>
             ))}
           </div>
