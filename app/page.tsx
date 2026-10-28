@@ -177,14 +177,20 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="section">
+      <section className="section stories-band" id="stories">
         <div className="wrap">
           <div className="why-head">
             <div>
               <div className="eyebrow">ADVISOR STORIES</div>
               <h2>Real people. Golden careers.</h2>
             </div>
-            <p className="sub"><b style={{ color: "var(--navy)" }}>{site.rating}</b> from {site.reviews} reviews</p>
+            <div className="rating-card">
+              <b>{site.rating}</b>
+              <div>
+                <span className="stars" aria-hidden="true">★★★★★</span>
+                <small>from {site.reviews} reviews</small>
+              </div>
+            </div>
           </div>
           <div className="stories">
             {[
@@ -192,8 +198,9 @@ export default function HomePage() {
               ["/media/story-2.jpg", "From clearing my exam to leading a team of 14 advisors — Golden Fortune gave me a clear, honest path.", "Vikram Singh", "Team Leader · Jaipur"],
               ["/media/story-3.jpg", "As a homemaker, flexible hours mattered most. I now earn independently while being there for my kids.", "Meera Joshi", "Part-time Advisor · Pune"],
             ].map(([photo, quote, name, meta]) => (
-              <article className="card story" key={name}>
-                <q>{quote}</q>
+              <article className="story" key={name}>
+                <span className="qmark" aria-hidden="true">“</span>
+                <p className="quote">“{quote}”</p>
                 <div className="who">
                   <img src={photo} alt="" />
                   <div><b>{name}</b><span>{meta}</span></div>
