@@ -528,6 +528,7 @@ h1 { font-size: clamp(40px, 5vw, 64px); line-height: 1.05; letter-spacing: -0.03
 .who span { display: block; color: #8b97a6; font-size: 13px; }
 
 .contact-grid, .split { display: grid; grid-template-columns: .88fr 1.12fr; gap: 22px; align-items: stretch; }
+.contact-grid { gap: 0; }
 .contact-panel {
   position: relative; overflow: hidden;
   background: #0a2540;
@@ -567,6 +568,7 @@ h1 { font-size: clamp(40px, 5vw, 64px); line-height: 1.05; letter-spacing: -0.03
   border: 1px solid var(--line);
   box-shadow: var(--shadow);
 }
+.contact-grid .form { border-color: transparent; box-shadow: none; }
 .form-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
 .form h3 { margin: 0; color: #0a2540; font-size: 26px; letter-spacing: -0.02em; }
 .time {
