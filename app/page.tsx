@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Hero } from "@/components/Hero";
+import { ContactPanel } from "@/components/ContactPanel";
 import { InquiryForm } from "@/components/InquiryForm";
 import { insurers, roles, site } from "@/lib/site";
 
@@ -213,16 +214,7 @@ export default function HomePage() {
 
       <section className="section" id="contact" style={{ paddingTop: 10 }}>
         <div className="wrap contact-grid">
-          <div className="contact-panel">
-            <div className="eyebrow">GET IN TOUCH</div>
-            <h2>Start your golden career today</h2>
-            <p>Share a few details — a career advisor will call you within 24 hours.</p>
-            <div className="info-line"><span>TOLL-FREE</span><a href={site.phoneHref}>{site.phoneDisplay}</a></div>
-            <div className="info-line"><span>EMAIL</span><a href={`mailto:${site.email}`}>{site.email}</a></div>
-            <div className="info-line"><span>HEAD OFFICE</span>{site.address}</div>
-            <div className="info-line"><span>HOURS</span>{site.hours}</div>
-            <a className="btn btn-line" href={site.whatsapp}>Chat on WhatsApp</a>
-          </div>
+          <ContactPanel kicker="GET IN TOUCH" title={<>Start your golden<br />career today</>} showWhatsapp />
           <InquiryForm source="home" />
         </div>
       </section>

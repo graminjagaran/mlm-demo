@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { roles } from "@/lib/site";
+import { cities, roles } from "@/lib/site";
 
 const started = Date.now();
 
@@ -60,8 +60,13 @@ export function InquiryForm({ source }: { source: string }) {
 
   return (
     <form className="form" onSubmit={onSubmit}>
-      <span className="time">2 min</span>
-      <h3>Career Application</h3>
+      <div className="form-head">
+        <h3>Career Application</h3>
+        <span className="time">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="1.7" /><path d="M12 8v4l2.5 1.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" /></svg>
+          2 min
+        </span>
+      </div>
       <div className="grid-2">
         <div>
           <label htmlFor="fullName">Full name*</label>
@@ -69,7 +74,10 @@ export function InquiryForm({ source }: { source: string }) {
         </div>
         <div>
           <label htmlFor="mobile">Mobile number*</label>
-          <input id="mobile" name="mobile" required inputMode="tel" maxLength={16} placeholder="+91 98765 43210" autoComplete="tel" />
+          <div className="phone-field">
+            <span>+91</span>
+            <input id="mobile" name="mobile" required inputMode="tel" maxLength={16} placeholder="98765 43210" autoComplete="tel" />
+          </div>
         </div>
       </div>
       <div className="grid-2">
@@ -79,19 +87,22 @@ export function InquiryForm({ source }: { source: string }) {
         </div>
         <div>
           <label htmlFor="city">City*</label>
-          <input id="city" name="city" required maxLength={60} placeholder="Select your city" autoComplete="address-level2" />
+          <select id="city" name="city" required defaultValue="">
+            <option value="" disabled>Select your city</option>
+            {cities.map((city) => <option key={city} value={city}>{city}</option>)}
+          </select>
         </div>
       </div>
       <label>Role you&apos;re interested in</label>
       <div className="roles-pick">
         {roles.map((item) => (
-          <label key={item.formValue}>
+          <label key={item.formValue} className={role === item.formValue ? "on" : ""}>
             <input type="radio" name="rolePick" checked={role === item.formValue} onChange={() => setRole(item.formValue)} />
             {item.formValue}
           </label>
         ))}
       </div>
-      <label htmlFor="message">Message (optional)</label>
+      <label htmlFor="message">Message <span className="opt">(optional)</span></label>
       <textarea id="message" name="message" maxLength={1000} placeholder="Tell us a little about your background..." />
       <label className="hp" aria-hidden="true">
         Company website
@@ -102,8 +113,13 @@ export function InquiryForm({ source }: { source: string }) {
         <span>I authorise Golden Fortune to contact me via call, SMS or WhatsApp. This overrides DND registration.</span>
       </label>
       {error ? <p className="form-error">{error}</p> : null}
-      <button className="btn btn-gold" type="submit" disabled={pending}>{pending ? "Sending..." : "Submit Application"}</button>
-      <p className="form-note">Your details are safe and confidential.</p>
+      <div className="form-foot">
+        <p className="form-note">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" strokeWidth="1.7" /><path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="currentColor" strokeWidth="1.7" /></svg>
+          Your details are safe and confidential.
+        </p>
+        <button className="btn" type="submit" disabled={pending}>{pending ? "Sending..." : "Submit Application"} <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg></button>
+      </div>
     </form>
   );
 }
