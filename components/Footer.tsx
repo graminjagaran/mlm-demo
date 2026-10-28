@@ -51,7 +51,7 @@ export function Footer() {
           <p>Empowering India&apos;s next generation of insurance professionals with training, mentorship and opportunity.</p>
           <div className="socials">
             {socials.map((name) => (
-              <a key={name} href="#" aria-label={name}>
+              <a key={name} href={site.url} aria-label={name}>
                 <SocialIcon name={name} />
               </a>
             ))}
