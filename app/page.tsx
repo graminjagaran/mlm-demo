@@ -79,7 +79,7 @@ export default function HomePage() {
           </div>
           <div>
             <div className="eyebrow">ABOUT US</div>
-            <h2>We don&apos;t just recruit. We build leaders.</h2>
+            <h2>We don&apos;t just recruit. We<br />build leaders.</h2>
             <p className="sub">{site.legalName} connects ambitious individuals with India&apos;s leading life and general insurers. From your first interview to your first promotion, our team stands beside you with training, tools and a network that turns potential into prosperity.</p>
             <div className="statbar">
               <div><b>{site.advisors}</b><span>Advisors placed</span></div>
@@ -93,7 +93,7 @@ export default function HomePage() {
               <li>Transparent payouts</li>
             </ul>
             <div className="about-cta">
-              <Link className="btn btn-navy" href="/about/">Know More About Us <span aria-hidden="true">→</span></Link>
+              <Link className="btn btn-navy" href="/about/">Know More About Us <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg></Link>
               <div className="founder">
                 <img src="/media/founder.jpg" alt="" />
                 <div><b>Rajesh Malhotra</b><span>Founder & Managing Director</span></div>
