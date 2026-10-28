@@ -90,7 +90,7 @@ export function Footer() {
           </a>
           <span>
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21s6.5-5.8 6.5-10.2a6.5 6.5 0 1 0-13 0C5.5 15.2 12 21 12 21z" stroke="currentColor" strokeWidth="1.7" /><circle cx="12" cy="10.6" r="1.7" stroke="currentColor" strokeWidth="1.7" /></svg>
-            {site.address.replace("Level 9, ", "")}
+            {site.address}
           </span>
         </div>
       </div>

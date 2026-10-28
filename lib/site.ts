@@ -8,7 +8,7 @@ export const site = {
   phoneHref: "tel:18000000000",
   whatsapp: "https://wa.me/18000000000",
   email: "careers@goldenfortunelife.com",
-  address: "Level 9, BKC Tower, Mumbai 400051",
+  address: "English Bazar, Malda, West Bengal 732101",
   hours: "Mon–Sat, 9:30 AM – 6:30 PM",
   year1Income: "₹6.8 Lakh+",
   advisors: "2,500+",
@@ -75,6 +75,7 @@ export const roles = [
 export type Role = (typeof roles)[number];
 
 export const cities = [
+  "Malda",
   "Mumbai",
   "Delhi",
   "Bengaluru",
@@ -109,13 +110,13 @@ export const cities = [
 
 export const branches = [
   {
-    city: "Mumbai",
+    city: "Malda",
     name: "Head office",
-    detail: "Level 9, BKC Tower, Mumbai 400051",
+    detail: "English Bazar, Malda, West Bengal 732101",
     hours: "Mon–Sat, 9:30 AM – 6:30 PM",
   },
   ...cities
-    .filter((city) => city !== "Mumbai")
+    .filter((city) => city !== "Malda")
     .map((city) => ({
       city,
       name: "Career desk",

@@ -13,7 +13,7 @@ export default function BranchesPage() {
   return (
     <section className="section">
       <div className="wrap">
-        <PageHero kicker="BRANCHES" title="Find a career desk" text="Head office is in Mumbai. Other cities are confirmed on your counselling call. The published network covers 120+ cities." />
+        <PageHero kicker="BRANCHES" title="Find a career desk" text="Head office is in English Bazar, Malda, West Bengal 732101. Other city desks are confirmed on your counselling call." />
         <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search a city" aria-label="Search a city" />
         <div className="cards-3" style={{ marginTop: 16 }}>
           {list.map((branch) => (
