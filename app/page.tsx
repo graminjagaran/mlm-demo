@@ -110,15 +110,37 @@ export default function HomePage() {
             <h2>Find the role that fits you</h2>
             <p className="sub">Whether you&apos;re a graduate, a working professional or a homemaker — there&apos;s a path for you.</p>
           </div>
-          <div className="cards-3" style={{ marginTop: 26 }}>
+          <div className="cards-3 roles">
             {roles.map((role) => (
-              <article className={role.featured ? "card role featured" : "card role"} key={role.slug}>
-                <span className="mode">{role.mode}</span>
-                {role.featured ? <span className="popular">Most Popular</span> : null}
+              <article className={role.featured ? "role featured" : "role"} key={role.slug}>
+                <div className="role-top">
+                  <span className="role-icon" aria-hidden="true">
+                    {role.slug === "life-advisor" ? (
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 19.4s-6.4-3.9-6.4-8.2A3.6 3.6 0 0 1 12 8.2a3.6 3.6 0 0 1 6.4 3c0 4.3-6.4 8.2-6.4 8.2z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /></svg>
+                    ) : null}
+                    {role.slug === "team-leader" ? (
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="2.1" stroke="currentColor" strokeWidth="1.6" /><path d="M8.1 16.6c.6-2 2.1-3.1 3.9-3.1s3.3 1.1 3.9 3.1" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /><circle cx="6.3" cy="9.1" r="1.6" stroke="currentColor" strokeWidth="1.5" /><path d="M3.5 16.4c.4-1.5 1.4-2.3 2.8-2.3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /><circle cx="17.7" cy="9.1" r="1.6" stroke="currentColor" strokeWidth="1.5" /><path d="M20.5 16.4c-.4-1.5-1.4-2.3-2.8-2.3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
+                    ) : null}
+                    {role.slug === "general-partner" ? (
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3.2 13.4 5.4 9.3A2 2 0 0 1 7.2 8.2h9.6a2 2 0 0 1 1.8 1.1l2.2 4.1" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /><path d="M3.4 13.4h17.2V17a1 1 0 0 1-1 1h-1.1M4.4 18H3.4a1 1 0 0 1-1-1v-3.6" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /><circle cx="7.2" cy="17.6" r="1.35" fill="currentColor" /><circle cx="16.8" cy="17.6" r="1.35" fill="currentColor" /></svg>
+                    ) : null}
+                  </span>
+                  {role.featured ? <span className="popular">Most Popular</span> : <span className="mode">{role.mode}</span>}
+                </div>
                 <h3>{role.title}</h3>
                 <p>{role.summary}</p>
-                <ul>{role.points.map((point) => <li key={point}>{point}</li>)}</ul>
-                <Link className={role.featured ? "btn btn-gold" : "btn btn-ghost"} href={`/careers/${role.slug}/`}>Apply for this role</Link>
+                <ul>
+                  {role.points.map((point) => (
+                    <li key={point}>
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3.2 8.2 6.3 11.3 12.8 4.8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                      {point}
+                    </li>
+                  ))}
+                </ul>
+                <Link className="btn" href={`/careers/${role.slug}/`}>
+                  Apply for this role
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                </Link>
               </article>
             ))}
           </div>
