@@ -12,7 +12,11 @@ export default function HomePage() {
         <div className="wrap">
           <p>Placing advisors with {site.insurers} leading insurers</p>
           <div className="logo-row">
-            {insurers.map((name) => <span className="logo-pill" key={name}>{name}</span>)}
+            {insurers.map((name) => name === "Shriram Finance" ? (
+              <img className="insurer-logo" key={name} src="/brand/shriram.png" alt="Shriram Finance" />
+            ) : (
+              <span className="logo-pill" key={name}>{name}</span>
+            ))}
           </div>
         </div>
       </section>
@@ -24,23 +28,29 @@ export default function HomePage() {
               <div className="eyebrow">WHY CHOOSE A CAREER IN INSURANCE</div>
               <h2>A profession built on trust, rewarded with growth.</h2>
             </div>
-            <p className="sub">India&apos;s insurance sector is growing at double digits. Here&apos;s why professionals from every background are making the switch.</p>
+            <div className="why-side">
+              <p>India&apos;s insurance sector is growing at double digits. Here&apos;s why professionals from every background are making the switch.</p>
+              <Link className="explore" href="/#roles">Explore roles <span aria-hidden="true">→</span></Link>
+            </div>
           </div>
           <div className="cards-4">
             {[
-              ["Unlimited Earnings", "Commissions, lifetime renewals and performance bonuses — with no ceiling."],
-              ["Flexible Hours", "Work full-time or part-time, from anywhere, at a pace that suits your life."],
-              ["Expert Training", "Certification prep, sales workshops and 1:1 mentoring from top performers."],
-              ["Recognition & Growth", "Fast-track leadership roles, award trips and a path to your own agency."],
-            ].map(([title, text]) => (
-              <article className="card" key={title}><h3>{title}</h3><p>{text}</p></article>
+              ["Unlimited Earnings", "Commissions, lifetime renewals and performance bonuses — with no ceiling.", "Income cap", "None", "M12 4v16M8 8h8M9 16h6"],
+              ["Flexible Hours", "Work full-time or part-time, from anywhere, at a pace that suits your life.", "Work mode", "Your choice", "M12 7v5l3 2M12 21a9 9 0 1 0-9-9 9 9 0 0 0 9 9z"],
+              ["Expert Training", "Certification prep, sales workshops and 1:1 mentoring from top performers.", "Training cost", "Free", "M3 10l9-6 9 6-9 6-9-6zM7 12v5c0 1 2 3 5 3s5-2 5-3v-5"],
+              ["Recognition & Growth", "Fast-track leadership roles, award trips and a path to your own agency.", "Promotion", "In 12 months", "M8 20h8M12 17a5 5 0 0 0 5-5V6H7v6a5 5 0 0 0 5 5zM9 6V4h6v2"],
+            ].map(([title, text, label, value, icon]) => (
+              <article className="why-card" key={title}>
+                <i>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d={icon} stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </i>
+                <h3>{title}</h3>
+                <p>{text}</p>
+                <div><span>{label}</span><b>{value}</b></div>
+              </article>
             ))}
-          </div>
-          <div className="facts">
-            <div className="fact"><span>Income cap</span><b>None</b></div>
-            <div className="fact"><span>Work mode</span><b>Your choice</b></div>
-            <div className="fact"><span>Training cost</span><b>Free</b></div>
-            <div className="fact"><span>Promotion</span><b>In 12 months</b></div>
           </div>
         </div>
       </section>
@@ -49,27 +59,38 @@ export default function HomePage() {
         <div className="wrap about">
           <div className="about-photo">
             <img src="/media/about.jpg" alt="Golden Fortune team" />
-            <div className="years"><b>{site.years} Years</b><span>Building insurance careers</span></div>
+            <div className="recruiter-badge">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 20h8M12 17a5 5 0 0 0 5-5V6H7v6a5 5 0 0 0 5 5zM9 6V4h6v2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+              Top Recruiter 2024
+            </div>
+            <div className="years">
+              <i>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="9" r="5" stroke="currentColor" strokeWidth="1.7" /><path d="M9 13.5 8 21l4-2 4 2-1-7.5" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /></svg>
+              </i>
+              <div><b>{site.years} Years</b><span>Building insurance careers</span></div>
+            </div>
           </div>
           <div>
-            <div className="badge">Top Recruiter 2024</div>
+            <div className="eyebrow">ABOUT US</div>
             <h2>We don&apos;t just recruit. We build leaders.</h2>
             <p className="sub">{site.legalName} connects ambitious individuals with India&apos;s leading life and general insurers. From your first interview to your first promotion, our team stands beside you with training, tools and a network that turns potential into prosperity.</p>
-            <div className="metrics">
+            <div className="statbar">
               <div><b>{site.advisors}</b><span>Advisors placed</span></div>
               <div><b>{site.cities}</b><span>Cities covered</span></div>
-              <div><b>{site.passRate}</b><span>Exam pass rate</span></div>
+              <div><b className="gold-num">{site.passRate}</b><span>Exam pass rate</span></div>
             </div>
-            <ul className="ticks">
+            <ul className="ticks cols">
               <li>End-to-end licensing support</li>
               <li>Dedicated branch mentor</li>
               <li>Digital sales toolkit</li>
               <li>Transparent payouts</li>
             </ul>
-            <Link className="btn btn-navy" href="/about/">Know More About Us</Link>
-            <div className="founder">
-              <img src="/media/founder.jpg" alt="" />
-              <div><b>Rajesh Malhotra</b><span>Founder & Managing Director</span></div>
+            <div className="about-cta">
+              <Link className="btn btn-navy" href="/about/">Know More About Us <span aria-hidden="true">→</span></Link>
+              <div className="founder">
+                <img src="/media/founder.jpg" alt="" />
+                <div><b>Rajesh Malhotra</b><span>Founder & Managing Director</span></div>
+              </div>
             </div>
           </div>
         </div>

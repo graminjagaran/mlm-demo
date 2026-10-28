@@ -125,6 +125,7 @@ export const branches = [
 ];
 
 export const insurers = [
+  "Shriram Finance",
   "Bharat Assure",
   "Suraksha",
   "NovaLife",
