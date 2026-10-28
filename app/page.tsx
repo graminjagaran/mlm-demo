@@ -1,61 +1,12 @@
 import Link from "next/link";
+import { Hero } from "@/components/Hero";
 import { InquiryForm } from "@/components/InquiryForm";
 import { insurers, roles, site } from "@/lib/site";
-
-const actions = [
-  ["Apply Online", "2-minute form", "/apply/"],
-  ["Check Eligibility", "18+, 10th pass", "/apply/"],
-  ["Income Calculator", "Estimate earnings", "/calculator/"],
-  ["Training Calendar", `Next batch: ${site.nextBatch}`, "/training/"],
-  ["Find a Branch", `${site.cities} locations`, "/branches/"],
-];
 
 export default function HomePage() {
   return (
     <>
-      <section className="hero">
-        <div className="wrap hero-grid">
-          <div>
-            <div className="eyebrow">CAREERS IN INSURANCE</div>
-            <h1>Gateway to a <span className="gold">Golden</span> Career</h1>
-            <p className="lede">Join a trusted recruitment network that trains, licenses and mentors you to build a rewarding career with India&apos;s leading insurers.</p>
-            <div className="hero-actions">
-              <Link className="btn btn-gold" href="/apply/">Apply Now — It&apos;s Free</Link>
-              <a className="btn btn-ghost" href="#roadmap">How It Works</a>
-            </div>
-            <div className="checks">
-              <span><i className="dot">✓</i> No joining fee</span>
-              <span><i className="dot">✓</i> Free certification training</span>
-              <span><i className="dot">✓</i> Full-time or part-time</span>
-            </div>
-          </div>
-          <aside className="income-card">
-            <img src="/media/hero.jpg" alt="Advisors in a training room" />
-            <div className="income-body">
-              <div className="kicker">AVG. YEAR-1 INCOME</div>
-              <strong>{site.year1Income}</strong>
-              <div className="stat-row">
-                <div><b>{site.advisors}</b><span>Advisors</span></div>
-                <div><b>{site.rating}</b><span>average rating</span></div>
-              </div>
-            </div>
-          </aside>
-        </div>
-      </section>
-
-      <section className="section" style={{ paddingTop: 28 }}>
-        <div className="wrap actions">
-          {actions.map(([title, text, href]) => (
-            <Link className="action" key={title} href={href}>
-              <i aria-hidden="true">
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7" stroke="currentColor" strokeWidth="1.6" /></svg>
-              </i>
-              <b>{title}</b>
-              <span>{text}</span>
-            </Link>
-          ))}
-        </div>
-      </section>
+      <Hero />
 
       <section className="insurers">
         <div className="wrap">
