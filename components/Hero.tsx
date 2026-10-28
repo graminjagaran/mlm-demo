@@ -7,20 +7,17 @@ import { site } from "@/lib/site";
 const slides = [
   {
     title: "Gateway to a",
-    accent: "Golden",
-    rest: "Career",
+    accent: "Golden Career",
     text: "Join a trusted recruitment network that trains, licenses and mentors you to build a rewarding career with India's leading insurers.",
   },
   {
-    title: "A profession built",
-    accent: "on trust",
-    rest: "",
+    title: "A profession",
+    accent: "built on trust",
     text: "India's insurance sector is growing at double digits. Training, licensing and mentoring stay with us, and recruitment stays free.",
   },
   {
     title: "From application",
     accent: "to licence",
-    rest: "",
     text: "Apply in two minutes, meet a mentor, clear the exam, and start with a code and a sales toolkit.",
   },
 ];
@@ -44,9 +41,8 @@ export function Hero() {
           <div className="hero-copy">
             <div className="hero-pill">CAREERS IN INSURANCE</div>
             <h1>
-              {slide.title}{" "}
+              <span>{slide.title}</span>
               <span className="gold-word">{slide.accent}</span>
-              {slide.rest ? <> {slide.rest}</> : null}
             </h1>
             <p>{slide.text}</p>
             <div className="hero-actions">
