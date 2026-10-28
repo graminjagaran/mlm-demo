@@ -1,6 +1,6 @@
 export const site = {
   name: "Golden Fortune Life",
-  legalName: "Golden Fortune Multi-Services",
+  legalName: "Golden Fortune Life Multi-Services",
   tagline: "MULTI-SERVICES",
   url: "https://goldenfortunelife.com",
   memberLogin: "https://member.goldenfortunelife.com",
